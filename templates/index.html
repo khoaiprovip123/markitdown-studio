@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkItDown Studio - Đối Chiếu Tài Liệu Cao Cấp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #030712;
+            --panel-bg: rgba(17, 24, 39, 0.45);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(99, 102, 241, 0.2);
+            --accent-color: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.4);
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+            --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 180, 212, 0.1) 0px, transparent 50%);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 2rem;
+            background: rgba(3, 7, 18, 0.7);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(16px);
+            z-index: 20;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 2.2rem;
+            height: 2.2rem;
+            background: var(--accent-gradient);
+            border-radius: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.35rem;
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .logo-title {
+            font-weight: 700;
+            font-size: 1.35rem;
+            letter-spacing: -0.025em;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-settings {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 2.3rem;
+            height: 2.3rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-settings:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #6366f1;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 0.6rem 1.3rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Settings Drawer Panel */
+        .settings-drawer {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            border-left: 1px solid var(--border-color);
+            z-index: 100;
+            padding: 2rem 1.5rem;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .settings-drawer.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .settings-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .btn-close-settings {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .btn-close-settings:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .settings-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .settings-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.375rem;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .settings-input:focus {
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 2rem;
+            background: rgba(17, 24, 39, 0.25);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            z-index: 15;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(11, 15, 25, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.45rem 0.85rem;
+            flex-grow: 1;
+            max-width: 480px;
+            gap: 0.5rem;
+            transition: all 0.25s;
+        }
+
+        .search-box:focus-within {
+            border-color: #6366f1;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+            background: rgba(11, 15, 25, 0.8);
+        }
+
+        .search-icon {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-counter {
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            background: rgba(99, 102, 241, 0.3);
+            padding: 0.15rem 0.45rem;
+            border-radius: 0.25rem;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .search-nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .search-nav-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .search-nav-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        /* URL Converter Box */
+        .url-box-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 440px;
+            background: rgba(0,0,0,0.25);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .url-row {
+            display: flex;
+            background: rgba(11, 15, 25, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.5rem;
+            gap: 0.5rem;
+            transition: all 0.25s;
+        }
+
+        .url-row:focus-within {
+            border-color: #a855f7;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
+            background: rgba(11, 15, 25, 0.8);
+        }
+
+        .url-input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+            padding-left: 0.5rem;
+        }
+
+        .btn-convert-url {
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
+        }
+
+        .btn-convert-url:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.55);
+        }
+
+        .toolbar-options {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .option-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .option-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        .option-toggle input[type=checkbox] {
+            appearance: none;
+            width: 1.6rem;
+            height: 0.9rem;
+            background: #27272a;
+            border-radius: 999px;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .option-toggle input[type=checkbox]:checked {
+            background: #6366f1;
+        }
+
+        .option-toggle input[type=checkbox]::before {
+            content: '';
+            position: absolute;
+            width: 0.65rem;
+            height: 0.65rem;
+            border-radius: 50%;
+            background: white;
+            top: 0.075rem;
+            left: 0.075rem;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-toggle input[type=checkbox]:checked::before {
+            transform: translateX(0.7rem);
+        }
+
+        /* Workspace Grid */
+        .workspace {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            overflow: hidden;
+            background-color: transparent;
+            position: relative;
+            padding: 0.75rem 1rem;
+            gap: 0;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        #left-panel {
+            width: 50%;
+            min-width: 250px;
+        }
+
+        #right-panel {
+            flex-grow: 1;
+            min-width: 250px;
+        }
+
+        /* Resizer Bar (Splitter) */
+        .resizer {
+            width: 14px;
+            background-color: transparent;
+            cursor: col-resize;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 -3px;
+        }
+
+        .resizer-line {
+            width: 2px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 99px;
+            transition: all 0.2s ease;
+        }
+
+        .resizer:hover .resizer-line, .resizer.dragging .resizer-line {
+            height: 60px;
+            background-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+        }
+
+        /* Drag blocker overlay to prevent iframe stealing events */
+        #drag-blocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            display: none;
+            cursor: col-resize;
+            background: transparent;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            min-height: 52px;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            position: relative;
+            padding: 1.5rem;
+            scroll-behavior: auto;
+        }
+
+        /* Drag Over State */
+        .drag-target {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(99, 102, 241, 0.08);
+            border: 2px dashed rgba(99, 102, 241, 0.5);
+            border-radius: 0.75rem;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #a5b4fc;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
+        }
+
+        /* File Preview Area */
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .placeholder-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            gap: 1rem;
+            padding: 2rem;
+            border: 1px dashed rgba(255, 255, 255, 0.04);
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .placeholder-icon {
+            font-size: 3.25rem;
+            opacity: 0.5;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .placeholder-formats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            max-width: 450px;
+        }
+
+        .format-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Tabs on Right Panel */
+        .tab-group {
+            display: flex;
+            gap: 0.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.95rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: var(--accent-color);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Output Formatting */
+        .markdown-rendered {
+            line-height: 1.75;
+            color: #d1d5db;
+            font-size: 0.95rem;
+        }
+
+        .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3 {
+            color: #ffffff;
+            margin-top: 1.8rem;
+            margin-bottom: 0.85rem;
+            font-weight: 700;
+        }
+        
+        .markdown-rendered h1 { font-size: 1.6rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .markdown-rendered h2 { font-size: 1.3rem; }
+        .markdown-rendered h3 { font-size: 1.1rem; }
+
+        .markdown-rendered p {
+            margin-bottom: 1.25rem;
+        }
+
+        .markdown-rendered code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.2rem 0.45rem;
+            border-radius: 0.25rem;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+        }
+
+        .markdown-rendered pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1.25rem;
+            border-radius: 0.6rem;
+            overflow-x: auto;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .markdown-rendered pre code {
+            background: transparent;
+            padding: 0;
+            color: #e2e8f0;
+        }
+
+        .markdown-rendered ul, .markdown-rendered ol {
+            margin-bottom: 1.25rem;
+            padding-left: 1.75rem;
+        }
+
+        .markdown-rendered table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.25rem;
+        }
+
+        .markdown-rendered th, .markdown-rendered td {
+            border: 1px solid var(--border-color);
+            padding: 0.65rem 0.85rem;
+            text-align: left;
+        }
+
+        .markdown-rendered th {
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .raw-text {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            color: #34d399;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            resize: none;
+            outline: none;
+            line-height: 1.65;
+        }
+
+        /* Search highlights */
+        mark.search-match {
+            background-color: rgba(245, 158, 11, 0.35);
+            color: #ffffff;
+            border-bottom: 2px solid #f59e0b;
+            border-radius: 2px;
+            padding: 0.05rem 0.1rem;
+        }
+
+        mark.search-match.active-match {
+            background-color: rgba(239, 68, 68, 0.55);
+            color: #ffffff;
+            border-bottom: 2px solid #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+        }
+
+        /* Action Buttons */
+        .actions-wrapper {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover);
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            gap: 1.25rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .spinner-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+        }
+
+        .spinner-glow {
+            position: absolute;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body id="drop-zone">
+    <!-- Blocker div to capture mouse drag over iframe -->
+    <div id="drag-blocker"></div>
+    <div class="drag-target" id="drag-overlay">Kéo thả file vào đây để chuyển đổi</div>
+
+    <!-- Settings Drawer -->
+    <div class="settings-drawer" id="settings-drawer">
+        <div class="settings-header">
+            <div class="settings-title">Cấu hình API & Cloud</div>
+            <button class="btn-close-settings" id="btn-close-settings" title="Đóng">✕</button>
+        </div>
+        
+        <div class="settings-group">
+            <label class="settings-label" for="gemini-key">Gemini API Key</label>
+            <input type="password" id="gemini-key" class="settings-input" placeholder="AI transcript & giải mã âm thanh..." />
+        </div>
+
+        <div class="settings-group">
+            <label class="settings-label" for="docintel-endpoint">Azure DocIntel Endpoint</label>
+            <input type="text" id="docintel-endpoint" class="settings-input" placeholder="Azure Document Intelligence Endpoint..." />
+        </div>
+
+        <div class="settings-group">
+            <label class="settings-label" for="cu-endpoint">Azure CU Endpoint</label>
+            <input type="text" id="cu-endpoint" class="settings-input" placeholder="Azure Content Understanding Endpoint..." />
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-top: 1rem;">
+            * Các thông số được lưu bảo mật trong LocalStorage của trình duyệt và chỉ gửi đi dưới dạng Request Header để xử lý file.
+        </p>
+
+        <!-- Giới thiệu & Cập nhật -->
+        <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="logo-icon" style="width: 1.5rem; height: 1.5rem; font-size: 0.9rem; border-radius: 0.35rem; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);">M</div>
+                <span style="font-weight: 600; font-size: 0.9rem; color: #ffffff;">MarkItDown Studio Desktop</span>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
+                Phiên bản: <strong style="color: var(--accent-color);">v1.0.0</strong><br>
+                Ứng dụng đối chiếu tài liệu & trích xuất Markdown chuyên nghiệp, chạy offline bảo mật tuyệt đối.
+            </p>
+            <button id="btn-check-update" class="btn-action" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.45rem;" onclick="checkUpdates()">
+                🔄 Kiểm tra cập nhật
+            </button>
+        </div>
+    </div>
+    
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">M</div>
+            <div class="logo-title">MarkItDown Studio</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-settings" id="btn-settings-trigger" title="Cấu hình APIs / Azure Endpoint">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <div class="upload-btn-wrapper" id="header-upload-btn-wrapper">
+                <button class="btn-upload">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    Chọn tài liệu
+                </button>
+                <input type="file" id="file-selector" />
+            </div>
+        </div>
+    </header>
+
+    <div class="toolbar">
+        <!-- Search Bar -->
+        <div class="search-box">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm từ khóa trong kết quả Markdown..." disabled>
+            <span id="search-counter" class="search-counter" style="display: none;">0/0</span>
+            <button id="search-prev" class="search-nav-btn" title="Kết quả trước" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+            </button>
+            <button id="search-next" class="search-nav-btn" title="Kết quả sau" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+        </div>
+
+        <div class="toolbar-options">
+            <label class="option-toggle" title="Tự động đồng bộ vị trí cuộn giữa tài liệu nguồn và kết quả">
+                <input type="checkbox" id="sync-scroll-check" checked>
+                Cuộn đồng bộ
+            </label>
+        </div>
+    </div>
+
+    <div class="workspace" id="workspace">
+        <!-- Panel Gốc -->
+        <div class="panel" id="left-panel">
+            <div class="panel-header">
+                <!-- Source View Tabs -->
+                <div class="tab-group" id="src-tab-group">
+                    <button class="tab-btn active" id="src-tab-file-btn" onclick="switchSrcTab('file')">File Cục Bộ</button>
+                    <button class="tab-btn" id="src-tab-url-btn" onclick="switchSrcTab('url')">Dán Link / YouTube</button>
+                </div>
+                <!-- Active file title (Hidden by default, shown when document loaded) -->
+                <div class="panel-title" id="src-title" style="display: none;">Tài Liệu Gốc</div>
+                <div class="actions-wrapper" id="src-info">
+                    <button class="btn-action" id="btn-reset-src" style="display: none;" onclick="resetLeftPanel()" title="Đóng tài liệu và chọn cái khác">✕ Đóng</button>
+                </div>
+            </div>
+            <div class="panel-content" id="src-panel">
+                <!-- Drag and Drop zone -->
+                <div class="placeholder-box" id="src-placeholder">
+                    <div class="placeholder-icon">📄</div>
+                    <p style="font-weight: 500;">Hỗ trợ kéo thả hoặc chọn file từ máy tính</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 380px;">Kéo trực tiếp file của bạn thả vào đây để bắt đầu đối chiếu lập tức</p>
+                    <div class="placeholder-formats">
+                        <span class="format-badge">PDF</span>
+                        <span class="format-badge">Word</span>
+                        <span class="format-badge">Excel</span>
+                        <span class="format-badge">PowerPoint</span>
+                        <span class="format-badge">EPub</span>
+                        <span class="format-badge">ZIP</span>
+                        <span class="format-badge">Audio</span>
+                        <span class="format-badge">Image</span>
+                        <span class="format-badge">HTML/CSV/JSON/XML</span>
+                    </div>
+                </div>
+
+                <!-- URL input tab (Hidden by default) -->
+                <div class="placeholder-box" id="url-placeholder" style="display: none; gap: 1.5rem;">
+                    <div class="placeholder-icon" style="color: #a855f7;">🔗</div>
+                    <div>
+                        <p style="font-weight: 500; margin-bottom: 0.35rem;">Trích xuất nội dung từ liên kết</p>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 340px;">Hỗ trợ trích xuất phụ đề (transcript) tiếng Việt từ link YouTube, hoặc chuyển đổi trang web bất kỳ sang Markdown.</p>
+                    </div>
+                    
+                    <div class="url-box-container">
+                        <div class="url-row">
+                            <input type="text" id="url-input" class="url-input" placeholder="Dán link YouTube hoặc URL web vào đây...">
+                        </div>
+                        <button id="btn-convert-url" class="btn-convert-url" style="width: 100%;">Tiến Hành Chuyển Đổi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resizer Bar (Splitter) -->
+        <div class="resizer" id="drag-bar" title="Nhấp đúp chuột để chia đều 50/50">
+            <div class="resizer-line"></div>
+        </div>
+
+        <!-- Panel Markdown -->
+        <div class="panel" id="right-panel">
+            <div class="panel-header">
+                <div class="tab-group">
+                    <button class="tab-btn active" id="tab-btn-rendered" onclick="switchTab('rendered')">Đối Chiếu (Rendered)</button>
+                    <button class="tab-btn" id="tab-btn-raw" onclick="switchTab('raw')">Mã Nguồn (Raw)</button>
+                </div>
+                <div class="actions-wrapper">
+                    <button class="btn-action" id="btn-copy" style="display: none;" onclick="copyMarkdown()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copy
+                    </button>
+                </div>
+            </div>
+            <div class="panel-content" id="dest-panel">
+                <div class="loading-overlay" id="loading">
+                    <div class="spinner-container">
+                        <div class="spinner"></div>
+                        <div class="spinner-glow"></div>
+                    </div>
+                    <p id="loading-text" style="font-weight: 500; font-size: 0.95rem; color: #a5b4fc;">Đang chuyển đổi tài liệu bằng MarkItDown...</p>
+                </div>
+                
+                <div class="placeholder-box" id="dest-placeholder">
+                    <div class="placeholder-icon">✨</div>
+                    <p style="font-weight: 500;">Kết quả Markdown sẽ hiển thị ở đây để đối chiếu</p>
+                </div>
+
+                <div id="rendered-view" class="markdown-rendered" style="display: none;"></div>
+                <textarea id="raw-view" class="raw-text" style="display: none;" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const dragOverlay = document.getElementById('drag-overlay');
+        const fileSelector = document.getElementById('file-selector');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loading-text');
+        
+        const srcPlaceholder = document.getElementById('src-placeholder');
+        const urlPlaceholder = document.getElementById('url-placeholder');
+        const destPlaceholder = document.getElementById('dest-placeholder');
+        const srcPanel = document.getElementById('src-panel');
+        const destPanel = document.getElementById('dest-panel');
+        const srcTitle = document.getElementById('src-title');
+        
+        const renderedView = document.getElementById('rendered-view');
+        const rawView = document.getElementById('raw-view');
+        const btnCopy = document.getElementById('btn-copy');
+
+        // Tab groups and headers
+        const srcTabGroup = document.getElementById('src-tab-group');
+        const btnResetSrc = document.getElementById('btn-reset-src');
+        const headerUploadBtnWrapper = document.getElementById('header-upload-btn-wrapper');
+
+        // Settings Drawer Inputs
+        const settingsDrawer = document.getElementById('settings-drawer');
+        const btnSettingsTrigger = document.getElementById('btn-settings-trigger');
+        const btnCloseSettings = document.getElementById('btn-close-settings');
+        const geminiKeyInput = document.getElementById('gemini-key');
+        const docIntelEndpointInput = document.getElementById('docintel-endpoint');
+        const cuEndpointInput = document.getElementById('cu-endpoint');
+
+        // URL Converter inputs
+        const urlInput = document.getElementById('url-input');
+        const btnConvertUrl = document.getElementById('btn-convert-url');
+
+        const searchInput = document.getElementById('search-input');
+        const searchCounter = document.getElementById('search-counter');
+        const searchPrevBtn = document.getElementById('search-prev');
+        const searchNextBtn = document.getElementById('search-next');
+        const syncScrollCheck = document.getElementById('sync-scroll-check');
+
+        const dragBlocker = document.getElementById('drag-blocker');
+
+        let rawMarkdownText = "";
+        let originalRenderedHTML = "";
+        let searchMatches = [];
+        let currentSearchIndex = -1;
+        let activeSrcTab = 'file'; // 'file' or 'url'
+
+        // Switch Left Panel Source Tab
+        function switchSrcTab(type) {
+            activeSrcTab = type;
+            const btnFile = document.getElementById('src-tab-file-btn');
+            const btnUrl = document.getElementById('src-tab-url-btn');
+
+            if (type === 'file') {
+                btnFile.classList.add('active');
+                btnUrl.classList.remove('active');
+                srcPlaceholder.style.display = 'flex';
+                urlPlaceholder.style.display = 'none';
+            } else {
+                btnFile.classList.remove('active');
+                btnUrl.classList.add('active');
+                srcPlaceholder.style.display = 'none';
+                urlPlaceholder.style.display = 'flex';
+            }
+        }
+
+        // Toggle Settings Drawer
+        btnSettingsTrigger.addEventListener('click', () => {
+            settingsDrawer.classList.toggle('open');
+        });
+        btnCloseSettings.addEventListener('click', () => {
+            settingsDrawer.classList.remove('open');
+        });
+
+        // Load / Save API Configurations
+        const configKeys = ['gemini_api_key', 'docintel_endpoint', 'cu_endpoint'];
+        const inputsMap = {
+            'gemini_api_key': geminiKeyInput,
+            'docintel_endpoint': docIntelEndpointInput,
+            'cu_endpoint': cuEndpointInput
+        };
+
+        configKeys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                inputsMap[key].value = localStorage.getItem(key);
+            }
+            inputsMap[key].addEventListener('change', e => {
+                localStorage.setItem(key, e.target.value.trim());
+            });
+        });
+
+        // Drag bar resizing logic
+        const leftPanel = document.getElementById('left-panel');
+        const rightPanel = document.getElementById('right-panel');
+        const resizer = document.getElementById('drag-bar');
+        const workspace = document.getElementById('workspace');
+
+        let isDragging = false;
+
+        resizer.addEventListener('mousedown', initDrag);
+        resizer.addEventListener('dblclick', () => {
+            leftPanel.style.width = '50%';
+        });
+
+        function initDrag(e) {
+            isDragging = true;
+            resizer.classList.add('dragging');
+            dragBlocker.style.display = 'block'; // Show blocking overlay
+            
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function doDrag(e) {
+            if (!isDragging) return;
+            
+            const workspaceRect = workspace.getBoundingClientRect();
+            const leftWidth = e.clientX - workspaceRect.left;
+            const leftWidthPercentage = (leftWidth / workspaceRect.width) * 100;
+            
+            // Set bounds (min 20%, max 80%)
+            if (leftWidthPercentage > 20 && leftWidthPercentage < 80) {
+                leftPanel.style.width = `${leftWidthPercentage}%`;
+            }
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            dragBlocker.style.display = 'none'; // Hide blocking overlay
+            
+            document.removeEventListener('mousemove', doDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // Synced Scrolling Logic
+        let isSyncingLeftScroll = false;
+        let isSyncingRightScroll = false;
+
+        srcPanel.addEventListener('scroll', () => {
+            if (!syncScrollCheck.checked) return;
+            if (isSyncingLeftScroll) {
+                isSyncingLeftScroll = false;
+                return;
+            }
+            isSyncingRightScroll = true;
+            const maxSrc = srcPanel.scrollHeight - srcPanel.clientHeight;
+            const maxDest = destPanel.scrollHeight - destPanel.clientHeight;
+            if (maxSrc > 0 && maxDest > 0) {
+                const scrollPercentage = srcPanel.scrollTop / maxSrc;
+                destPanel.scrollTop = scrollPercentage * maxDest;
+            }
+        });
+
+        destPanel.addEventListener('scroll', () => {
+            if (!syncScrollCheck.checked) return;
+            if (isSyncingRightScroll) {
+                isSyncingRightScroll = false;
+                return;
+            }
+            isSyncingLeftScroll = true;
+            const maxSrc = srcPanel.scrollHeight - srcPanel.clientHeight;
+            const maxDest = destPanel.scrollHeight - destPanel.clientHeight;
+            if (maxSrc > 0 && maxDest > 0) {
+                const scrollPercentage = destPanel.scrollTop / maxDest;
+                srcPanel.scrollTop = scrollPercentage * maxSrc;
+            }
+        });
+
+        // Search & Highlight Logic
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query || !rawMarkdownText) {
+                renderedView.innerHTML = originalRenderedHTML;
+                searchMatches = [];
+                currentSearchIndex = -1;
+                searchCounter.style.display = 'none';
+                searchPrevBtn.disabled = true;
+                searchNextBtn.disabled = true;
+                return;
+            }
+            
+            // Re-render to clear previous highlights
+            renderedView.innerHTML = originalRenderedHTML;
+            
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            
+            // Safe walker to avoid messing up HTML tags
+            const walkTextNodes = (node) => {
+                if (node.nodeType === 3) {
+                    const text = node.nodeValue;
+                    if (regex.test(text)) {
+                        const span = document.createElement('span');
+                        span.innerHTML = text.replace(regex, '<mark class="search-match">$1</mark>');
+                        node.parentNode.replaceChild(span, node);
+                    }
+                } else if (node.nodeType === 1 && node.childNodes && !['SCRIPT', 'STYLE', 'TEXTAREA'].includes(node.tagName)) {
+                    for (let i = node.childNodes.length - 1; i >= 0; i--) {
+                        walkTextNodes(node.childNodes[i]);
+                    }
+                }
+            };
+            
+            walkTextNodes(renderedView);
+            searchMatches = Array.from(renderedView.querySelectorAll('mark.search-match'));
+            
+            if (searchMatches.length > 0) {
+                currentSearchIndex = 0;
+                searchCounter.style.display = 'inline-block';
+                searchPrevBtn.disabled = false;
+                searchNextBtn.disabled = false;
+                highlightActiveMatch();
+            } else {
+                currentSearchIndex = -1;
+                searchCounter.style.display = 'inline-block';
+                searchCounter.innerText = '0/0';
+                searchPrevBtn.disabled = true;
+                searchNextBtn.disabled = true;
+            }
+        }
+
+        function highlightActiveMatch() {
+            searchMatches.forEach((match, idx) => {
+                if (idx === currentSearchIndex) {
+                    match.classList.add('active-match');
+                    match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    match.classList.remove('active-match');
+                }
+            });
+            searchCounter.innerText = `${currentSearchIndex + 1}/${searchMatches.length}`;
+        }
+
+        searchInput.addEventListener('input', performSearch);
+
+        searchPrevBtn.addEventListener('click', () => {
+            if (searchMatches.length === 0) return;
+            currentSearchIndex = (currentSearchIndex - 1 + searchMatches.length) % searchMatches.length;
+            highlightActiveMatch();
+        });
+
+        searchNextBtn.addEventListener('click', () => {
+            if (searchMatches.length === 0) return;
+            currentSearchIndex = (currentSearchIndex + 1) % searchMatches.length;
+            highlightActiveMatch();
+        });
+
+        // Helper to construct request headers from config settings
+        function buildHeaders() {
+            const headers = {};
+            const geminiKey = geminiKeyInput.value.trim();
+            const docIntel = docIntelEndpointInput.value.trim();
+            const cuEndpoint = cuEndpointInput.value.trim();
+
+            if (geminiKey) headers['X-Gemini-Key'] = geminiKey;
+            if (docIntel) headers['X-DocIntel-Endpoint'] = docIntel;
+            if (cuEndpoint) headers['X-CU-Endpoint'] = cuEndpoint;
+
+            return headers;
+        }
+
+        // Drag events for file uploads
+        window.addEventListener('dragenter', e => {
+            e.preventDefault();
+            dragOverlay.style.display = 'flex';
+        });
+
+        dragOverlay.addEventListener('dragleave', e => {
+            e.preventDefault();
+            if (e.clientX === 0 && e.clientY === 0) {
+                dragOverlay.style.display = 'none';
+            }
+        });
+
+        dragOverlay.addEventListener('drop', e => {
+            e.preventDefault();
+            dragOverlay.style.display = 'none';
+        });
+
+        window.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        window.addEventListener('drop', e => {
+            e.preventDefault();
+            dragOverlay.style.display = 'none';
+            if (e.dataTransfer.files.length > 0) {
+                uploadFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileSelector.addEventListener('change', e => {
+            if (e.target.files.length > 0) {
+                uploadFile(e.target.files[0]);
+            }
+        });
+
+        // Reset Left Panel to its upload state
+        function resetLeftPanel() {
+            // Remove preview
+            const existingPreview = document.getElementById('active-preview');
+            if (existingPreview) existingPreview.remove();
+
+            // Reset header state
+            srcTabGroup.style.display = 'flex';
+            srcTitle.style.display = 'none';
+            btnResetSrc.style.display = 'none';
+            headerUploadBtnWrapper.style.visibility = 'visible';
+
+            // Reset tab visibility
+            switchSrcTab(activeSrcTab);
+
+            // Reset right panel markdown content
+            rawMarkdownText = "";
+            originalRenderedHTML = "";
+            renderedView.innerHTML = "";
+            renderedView.style.display = "none";
+            rawView.value = "";
+            rawView.style.display = "none";
+            destPlaceholder.style.display = "flex";
+            btnCopy.style.display = "none";
+            
+            // Reset search input
+            searchInput.disabled = true;
+            searchInput.value = "";
+            searchCounter.style.display = 'none';
+        }
+
+        function uploadFile(file) {
+            loadingText.innerText = "Đang chuyển đổi tài liệu. Vui lòng chờ...";
+            loading.style.display = 'flex';
+            destPlaceholder.style.display = 'none';
+            renderedView.style.display = 'none';
+            rawView.style.display = 'none';
+            btnCopy.style.display = 'none';
+            
+            searchInput.disabled = true;
+            searchInput.value = "";
+            searchCounter.style.display = 'none';
+            searchPrevBtn.disabled = true;
+            searchNextBtn.disabled = true;
+
+            // Hide upload tabs and show the active document name
+            srcTabGroup.style.display = 'none';
+            srcPlaceholder.style.display = 'none';
+            urlPlaceholder.style.display = 'none';
+            srcTitle.style.display = 'block';
+            srcTitle.innerText = `Nguồn: ${file.name}`;
+            btnResetSrc.style.display = 'block';
+            headerUploadBtnWrapper.style.visibility = 'hidden';
+            
+            const existingPreview = document.getElementById('active-preview');
+            if (existingPreview) existingPreview.remove();
+
+            const fileUrl = URL.createObjectURL(file);
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            if (ext === 'pdf') {
+                const iframe = document.createElement('iframe');
+                iframe.id = 'active-preview';
+                iframe.className = 'preview-iframe';
+                iframe.src = fileUrl;
+                srcPanel.appendChild(iframe);
+            } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                const img = document.createElement('img');
+                img.id = 'active-preview';
+                img.src = fileUrl;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.objectFit = 'contain';
+                img.style.display = 'block';
+                img.style.margin = 'auto';
+                srcPanel.appendChild(img);
+            } else if (['html', 'txt'].includes(ext)) {
+                const iframe = document.createElement('iframe');
+                iframe.id = 'active-preview';
+                iframe.className = 'preview-iframe';
+                iframe.src = fileUrl;
+                srcPanel.appendChild(iframe);
+            } else if (['mp3', 'wav', 'm4a', 'mp4'].includes(ext)) {
+                const audio = document.createElement('audio');
+                audio.id = 'active-preview';
+                audio.src = fileUrl;
+                audio.controls = true;
+                audio.style.display = 'block';
+                audio.style.margin = 'auto';
+                audio.style.width = '80%';
+                audio.style.marginTop = '20%';
+                srcPanel.appendChild(audio);
+                loadingText.innerText = "Đang xử lý/Trích xuất lời thoại âm thanh bằng AI (quá trình này có thể mất 1-3 phút đối với file lớn)...";
+            } else {
+                const fallback = document.createElement('div');
+                fallback.id = 'active-preview';
+                fallback.className = 'placeholder-box';
+                fallback.innerHTML = `
+                    <div style="font-size: 4rem;">📁</div>
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; color: #ffffff;">${file.name}</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Định dạng file không hỗ trợ xem trước trực tiếp ngoại tuyến. <br>Đang tiến hành chuyển đổi sang Markdown bên phải...</p>
+                    </div>
+                `;
+                srcPanel.appendChild(fallback);
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/convert', {
+                method: 'POST',
+                headers: buildHeaders(),
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.error) {
+                    alert(data.error);
+                    destPlaceholder.style.display = 'flex';
+                    destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>${data.error}</p>`;
+                    return;
+                }
+
+                rawMarkdownText = data.markdown;
+                originalRenderedHTML = marked.parse(rawMarkdownText);
+                renderedView.innerHTML = originalRenderedHTML;
+                rawView.value = rawMarkdownText;
+                
+                switchTab('rendered');
+                btnCopy.style.display = 'flex';
+                searchInput.disabled = false;
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                destPlaceholder.style.display = 'flex';
+                destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>Lỗi kết nối server: ${err}</p>`;
+            });
+        }
+
+        // Convert URL (YouTube, Web URL etc)
+        btnConvertUrl.addEventListener('click', () => {
+            const url = urlInput.value.trim();
+            if (!url) {
+                alert("Vui lòng nhập đường dẫn URL hoặc link YouTube!");
+                return;
+            }
+
+            loadingText.innerText = "Đang phân tích và chuyển đổi URL. Vui lòng chờ...";
+            loading.style.display = 'flex';
+            destPlaceholder.style.display = 'none';
+            renderedView.style.display = 'none';
+            rawView.style.display = 'none';
+            btnCopy.style.display = 'none';
+
+            searchInput.disabled = true;
+            searchInput.value = "";
+            searchCounter.style.display = 'none';
+
+            // UI adjustments
+            srcTabGroup.style.display = 'none';
+            srcPlaceholder.style.display = 'none';
+            urlPlaceholder.style.display = 'none';
+            srcTitle.style.display = 'block';
+            srcTitle.innerText = `URL: ${url}`;
+            btnResetSrc.style.display = 'block';
+            headerUploadBtnWrapper.style.visibility = 'hidden';
+
+            const existingPreview = document.getElementById('active-preview');
+            if (existingPreview) existingPreview.remove();
+
+            const previewFrame = document.createElement('div');
+            previewFrame.id = 'active-preview';
+            previewFrame.className = 'placeholder-box';
+            previewFrame.innerHTML = `
+                <div style="font-size: 4rem;">🌐</div>
+                <div>
+                    <h3 style="margin-bottom: 0.5rem; color: #ffffff;">Đường dẫn web</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px; overflow-wrap: break-word;">${url}</p>
+                </div>
+            `;
+            srcPanel.appendChild(previewFrame);
+
+            fetch('/convert_url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...buildHeaders()
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.error) {
+                    alert(data.error);
+                    destPlaceholder.style.display = 'flex';
+                    destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>${data.error}</p>`;
+                    return;
+                }
+
+                rawMarkdownText = data.markdown;
+                originalRenderedHTML = marked.parse(rawMarkdownText);
+                renderedView.innerHTML = originalRenderedHTML;
+                rawView.value = rawMarkdownText;
+
+                switchTab('rendered');
+                btnCopy.style.display = 'flex';
+                searchInput.disabled = false;
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                destPlaceholder.style.display = 'flex';
+                destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>Lỗi kết nối server: ${err}</p>`;
+            });
+        });
+
+        // Tabs
+        function switchTab(tabType) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            if (tabType === 'rendered') {
+                document.getElementById('tab-btn-rendered').classList.add('active');
+                renderedView.style.display = 'block';
+                rawView.style.display = 'none';
+                searchInput.disabled = !rawMarkdownText;
+            } else {
+                document.getElementById('tab-btn-raw').classList.add('active');
+                renderedView.style.display = 'none';
+                rawView.style.display = 'block';
+                searchInput.disabled = true;
+            }
+        }
+
+        // Copy Clipboard
+        function copyMarkdown() {
+            navigator.clipboard.writeText(rawMarkdownText).then(() => {
+                const btn = document.getElementById('btn-copy');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span style="color: var(--success-color); font-weight: 600;">Đã Copy</span>
+                `;
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+
+        // Kiểm tra cập nhật ứng dụng
+        function checkUpdates() {
+            const btn = document.getElementById('btn-check-update');
+            const origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '🔍 Đang kiểm tra...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+                alert("Phiên bản hiện tại v1.0.0 đang là mới nhất!");
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
