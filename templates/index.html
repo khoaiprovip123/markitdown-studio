@@ -1590,7 +1590,7 @@
                 btn.innerHTML = origText;
                 
                 if (data.update_available) {
-                    applyUpdate(data.download_url);
+                    applyUpdate(data.download_url, data.latest_version, data.release_notes);
                 } else {
                     alert(`Phiên bản hiện tại v${data.current_version} đang là phiên bản mới nhất!`);
                 }
@@ -1602,13 +1602,25 @@
             });
         }
 
-        function applyUpdate(downloadUrl) {
+        function applyUpdate(downloadUrl, latestVersion, releaseNotes) {
             if (!downloadUrl) {
                 alert("Không có đường dẫn tải file cập nhật. Vui lòng tải thủ công trên GitHub.");
                 return;
             }
             
-            loadingText.innerText = "Phát hiện phiên bản mới. Đang tự động tải và cài đặt cập nhật...";
+            // Render giao diện thông báo cập nhật kèm changelog
+            loadingText.innerHTML = `
+                <div style="font-size: 1.15rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem; text-align: center;">
+                    🚀 Đang tự động nâng cấp ứng dụng lên phiên bản mới <span style="color: #6366f1;">v${latestVersion || ''}</span>
+                </div>
+                <div style="font-size: 0.85rem; color: #9ca3af; max-width: 440px; text-align: left; background: rgba(0,0,0,0.4); padding: 0.85rem 1.1rem; border-radius: 0.6rem; border: 1px solid rgba(255,255,255,0.06); max-height: 160px; overflow-y: auto; margin: 0.5rem 0; line-height: 1.5; font-family: sans-serif;">
+                    <strong style="color: #f3f4f6; display: block; margin-bottom: 0.35rem; font-size: 0.9rem;">Nhật ký thay đổi (Changelog):</strong>
+                    ${marked.parse(releaseNotes || "*Không có chi tiết thay đổi*")}
+                </div>
+                <div style="font-size: 0.8rem; color: #9ca3af; text-align: center; margin-top: 0.5rem;">
+                    Vui lòng chờ trong giây lát, ứng dụng sẽ tự động tải về và khởi động lại...
+                </div>
+            `;
             loading.style.display = 'flex';
             
             fetch('/api/apply_update', {
@@ -1624,12 +1636,14 @@
                     loading.style.display = 'none';
                     alert("Cập nhật thất bại: " + data.error);
                 } else {
-                    loadingText.innerText = data.message || "Đang tự động khởi động lại ứng dụng với phiên bản mới...";
+                    const statusText = document.querySelector("#loading p div:first-child");
+                    if (statusText) statusText.innerText = "Cài đặt thành công! Đang khởi động lại ứng dụng...";
                 }
             })
             .catch(err => {
-                // Mất kết nối do app tắt để cập nhật và khởi động lại
-                loadingText.innerText = "Đang áp dụng bản cập nhật và khởi động lại ứng dụng...";
+                // Tắt app gây ngắt kết nối fetch, đây là trạng thái khởi chạy lại bình thường
+                const statusText = document.querySelector("#loading p div:first-child");
+                if (statusText) statusText.innerText = "Đang áp dụng bản cập nhật và khởi động lại...";
             });
         }
 
@@ -1645,7 +1659,7 @@
                     btn.style.color = '#ffffff';
                     btn.style.border = 'none';
                     
-                    applyUpdate(data.download_url);
+                    applyUpdate(data.download_url, data.latest_version, data.release_notes);
                 }
             }).catch(() => {});
         }, 3000);
