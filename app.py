@@ -39,7 +39,8 @@ def check_for_updates():
                 assets = data.get("assets", [])
                 download_url = None
                 for asset in assets:
-                    if asset.get("name", "").endswith(".exe"):
+                    name = asset.get("name", "").lower()
+                    if name.endswith(".zip") or name.endswith(".exe"):
                         download_url = asset.get("browser_download_url")
                         break
                 return {
@@ -501,15 +502,20 @@ def apply_update_endpoint():
     try:
         import subprocess
         import tempfile
+        import zipfile
+        import shutil
+        
+        is_zip = download_url.lower().endswith('.zip')
         
         # 1. Tải file cập nhật mới
         temp_dir = tempfile.gettempdir()
-        temp_exe_path = os.path.join(temp_dir, "markitdown_studio_update.exe")
+        file_ext = ".zip" if is_zip else ".exe"
+        temp_file_path = os.path.join(temp_dir, f"markitdown_studio_update{file_ext}")
         
         print(f"Đang tải bản cập nhật từ: {download_url}...")
-        response = requests.get(download_url, stream=True, timeout=30)
+        response = requests.get(download_url, stream=True, timeout=60)
         response.raise_for_status()
-        with open(temp_exe_path, "wb") as f:
+        with open(temp_file_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
                 
@@ -519,26 +525,65 @@ def apply_update_endpoint():
         if not current_exe.endswith(".exe") or "python" in os.path.basename(current_exe).lower():
             return jsonify({
                 'success': True, 
-                'message': 'Đã tải thành công bản cập nhật (chế độ Dev: chỉ tải, không replace exe).'
+                'message': 'Đã tải thành công bản cập nhật (chế độ Dev: chỉ tải, không replace exe/zip).'
             })
             
-        # 3. Tạo batch script để thay thế exe sau khi tắt app
-        bat_content = f"""@echo off
+        current_dir = os.path.dirname(current_exe)
+        exe_name = os.path.basename(current_exe)
+        
+        if is_zip:
+            # Giải nén zip ra một thư mục tạm riêng
+            extract_dir = os.path.join(temp_dir, "markitdown_studio_extracted")
+            if os.path.exists(extract_dir):
+                shutil.rmtree(extract_dir)
+            os.makedirs(extract_dir, exist_ok=True)
+            
+            print(f"Giải nén tệp cập nhật zip vào {extract_dir}...")
+            with zipfile.ZipFile(temp_file_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
+                
+            # Kiểm tra xem có thư mục con MarkItDownStudio hay không
+            source_dir = extract_dir
+            subfolders = [f for f in os.listdir(extract_dir) if os.path.isdir(os.path.join(extract_dir, f))]
+            if len(subfolders) == 1 and subfolders[0].lower() == "markitdownstudio":
+                source_dir = os.path.join(extract_dir, subfolders[0])
+                
+            # Tạo batch script để sao chép thư mục
+            bat_content = f"""@echo off
+chcp 65001 > nul
+echo Dang cap nhat phien ban moi cho MarkItDown Studio...
+timeout /t 2 /nobreak > nul
+:loop
+taskkill /f /im "{exe_name}" > nul 2>&1
+xcopy "{source_dir}" "{current_dir}" /E /I /Y /Q > nul 2>&1
+if errorlevel 1 (
+    timeout /t 1 /nobreak > nul
+    goto loop
+)
+start "" "{current_exe}"
+rd /s /q "{extract_dir}" > nul 2>&1
+del "{temp_file_path}" > nul 2>&1
+(goto) 2>nul & del "%~f0"
+"""
+        else:
+            # Trường hợp file đơn .exe
+            bat_content = f"""@echo off
 chcp 65001 > nul
 echo Dang cap nhat ung dung MarkItDown Studio...
 timeout /t 2 /nobreak > nul
 :loop
-taskkill /f /im "{os.path.basename(current_exe)}" > nul 2>&1
+taskkill /f /im "{exe_name}" > nul 2>&1
 del "{current_exe}" > nul 2>&1
 if exist "{current_exe}" (
     timeout /t 1 /nobreak > nul
     goto loop
 )
-copy "{temp_exe_path}" "{current_exe}" > nul
+copy "{temp_file_path}" "{current_exe}" > nul
 start "" "{current_exe}"
-del "{temp_exe_path}" > nul
+del "{temp_file_path}" > nul
 (goto) 2>nul & del "%~f0"
 """
+            
         bat_path = os.path.join(temp_dir, "update_markitdown.bat")
         with open(bat_path, "w", encoding="utf-8") as f:
             f.write(bat_content)
@@ -546,7 +591,7 @@ del "{temp_exe_path}" > nul
         print("Đang kích hoạt script cập nhật và tắt ứng dụng...")
         subprocess.Popen([bat_path], shell=True)
         
-        # Shutdown Flask server bằng cách tự tắt process
+        # Shutdown Flask server
         def shutdown():
             time.sleep(1)
             os._exit(0)
