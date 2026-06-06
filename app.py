@@ -20,6 +20,39 @@ def get_base_path():
 
 base_path = get_base_path()
 
+VERSION = "1.0.0"
+REPO_OWNER = "khoaiprovip123"
+REPO_NAME = "markitdown-studio"
+
+def check_for_updates():
+    try:
+        url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/latest"
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "MarkItDown-Studio-App"
+        }
+        response = requests.get(url, headers=headers, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            latest_version = data.get("tag_name", "").lstrip("v")
+            if latest_version and latest_version != VERSION:
+                assets = data.get("assets", [])
+                download_url = None
+                for asset in assets:
+                    if asset.get("name", "").endswith(".exe"):
+                        download_url = asset.get("browser_download_url")
+                        break
+                return {
+                    "update_available": True,
+                    "current_version": VERSION,
+                    "latest_version": latest_version,
+                    "download_url": download_url,
+                    "release_notes": data.get("body", "")
+                }
+    except Exception as e:
+        print(f"Lỗi kiểm tra cập nhật: {e}")
+    return {"update_available": False, "current_version": VERSION}
+
 # Ensure packages directory is in sys.path so we can import markitdown
 sys.path.insert(0, os.path.join(base_path, 'packages', 'markitdown'))
 sys.path.insert(0, os.path.join(base_path, 'packages', 'markitdown', 'src'))
@@ -452,6 +485,81 @@ def convert_url():
     except Exception as e:
         print(f"Loi khi convert URL {url}: {e}")
         return jsonify({'error': f'Lỗi khi convert URL: {str(e)}'}), 500
+
+@app.route('/api/check_update', methods=['GET'])
+def check_update_endpoint():
+    res = check_for_updates()
+    return jsonify(res)
+
+@app.route('/api/apply_update', methods=['POST'])
+def apply_update_endpoint():
+    data = request.get_json() or {}
+    download_url = data.get('download_url')
+    if not download_url:
+        return jsonify({'error': 'Không có link tải cập nhật.'}), 400
+        
+    try:
+        import subprocess
+        import tempfile
+        
+        # 1. Tải file cập nhật mới
+        temp_dir = tempfile.gettempdir()
+        temp_exe_path = os.path.join(temp_dir, "markitdown_studio_update.exe")
+        
+        print(f"Đang tải bản cập nhật từ: {download_url}...")
+        response = requests.get(download_url, stream=True, timeout=30)
+        response.raise_for_status()
+        with open(temp_exe_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+                
+        # 2. Xử lý đường dẫn exe đang chạy
+        current_exe = sys.executable
+        # Nếu đang chạy bằng python thì không thay thế exe
+        if not current_exe.endswith(".exe") or "python" in os.path.basename(current_exe).lower():
+            return jsonify({
+                'success': True, 
+                'message': 'Đã tải thành công bản cập nhật (chế độ Dev: chỉ tải, không replace exe).'
+            })
+            
+        # 3. Tạo batch script để thay thế exe sau khi tắt app
+        bat_content = f"""@echo off
+chcp 65001 > nul
+echo Dang cap nhat ung dung MarkItDown Studio...
+timeout /t 2 /nobreak > nul
+:loop
+taskkill /f /im "{os.path.basename(current_exe)}" > nul 2>&1
+del "{current_exe}" > nul 2>&1
+if exist "{current_exe}" (
+    timeout /t 1 /nobreak > nul
+    goto loop
+)
+copy "{temp_exe_path}" "{current_exe}" > nul
+start "" "{current_exe}"
+del "{temp_exe_path}" > nul
+(goto) 2>nul & del "%~f0"
+"""
+        bat_path = os.path.join(temp_dir, "update_markitdown.bat")
+        with open(bat_path, "w", encoding="utf-8") as f:
+            f.write(bat_content)
+            
+        print("Đang kích hoạt script cập nhật và tắt ứng dụng...")
+        subprocess.Popen([bat_path], shell=True)
+        
+        # Shutdown Flask server bằng cách tự tắt process
+        def shutdown():
+            time.sleep(1)
+            os._exit(0)
+        import threading
+        threading.Thread(target=shutdown).start()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Đang tiến hành tự động cập nhật và khởi động lại ứng dụng...'
+        })
+    except Exception as e:
+        print(f"Lỗi khi thực hiện cập nhật: {e}")
+        return jsonify({'error': f'Lỗi cập nhật: {str(e)}'}), 500
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
