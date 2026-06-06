@@ -1,13 +1,20 @@
-# MarkItDown
+# MarkItDown Studio (Custom Version)
 
 [![PyPI](https://img.shields.io/pypi/v/markitdown.svg)](https://pypi.org/project/markitdown/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/markitdown)
-[![Built by AutoGen Team](https://img.shields.io/badge/Built%20by-AutoGen%20Team-blue)](https://github.com/microsoft/autogen)
 
-> [!IMPORTANT]
-> MarkItDown performs I/O with the privileges of the current process. Like open() or requests.get(), it will access resources that the process itself can access. Sanitize your inputs in untrusted environments, and call the narrowest `convert_*` function needed for your use case (e.g., `convert_stream()`, or `convert_local()`). See the [Security Considerations](#security-considerations) section of the documentation for more information.
+> **Lưu ý**: Đây là phiên bản **Custom (Cá nhân hóa & Cải tiến)** dựa trên mã nguồn gốc [Microsoft MarkItDown](https://github.com/microsoft/markitdown). Phiên bản này được phát triển để bổ sung các tính năng nâng cao phục vụ cho nhu cầu xử lý tài liệu tiếng Việt hiệu quả hơn.
 
-MarkItDown is a lightweight Python utility for converting various files to Markdown for use with LLMs and related text analysis pipelines. To this end, it is most comparable to [textract](https://github.com/deanmalmgren/textract), but with a focus on preserving important document structure and content as Markdown (including: headings, lists, tables, links, etc.) While the output is often reasonably presentable and human-friendly, it is meant to be consumed by text analysis tools -- and may not be the best option for high-fidelity document conversions for human consumption.
+## Các tính năng cải tiến đặc biệt trong phiên bản Custom:
+
+1. **Giao diện Web & Desktop đồ họa**: Tích hợp Flask và PyWebView để tạo ra giao diện đồ họa kéo thả thân thiện (**MarkItDown Studio**), thay vì chỉ chạy bằng dòng lệnh (CLI). Có thể chạy độc lập như ứng dụng Windows (.exe).
+2. **Hỗ trợ OCR tiếng Việt nâng cao**: Tích hợp công cụ EasyOCR offline để tự động nhận dạng chữ trong hình ảnh (`.png`, `.jpg`, `.jpeg`) và các file PDF dạng quét (Scanned PDF) có văn bản tiếng Việt.
+3. **Trích xuất lời thoại âm thanh (Audio Transcription) tiếng Việt**:
+   - Sử dụng **Gemini 1.5 Flash API** trực tiếp thông qua API Key nhập trên giao diện để trích xuất âm thanh tiếng Việt độ chính xác cực cao.
+   - Giải pháp offline miễn phí (Google Speech Recognition) tự động cắt nhỏ và lọc nhiễu âm thanh khi không có API Key.
+4. **Tự động đóng gói ứng dụng**: Có sẵn script PyInstaller (`build_app.bat`) để build ứng dụng thành file `.exe` tiện dụng.
+
+---
 
 MarkItDown currently supports the conversion from:
 
