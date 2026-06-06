@@ -941,20 +941,190 @@
             box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+        /* Local Drag over styles */
+        .drag-target-local {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            border: 2.5px dashed var(--accent-color);
+            border-radius: 0.6rem;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 100;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #a5b4fc;
+            backdrop-filter: blur(5px);
+            box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.2);
+            transition: all 0.2s;
         }
-        ::-webkit-scrollbar-track {
+
+        /* Modal overlay and content styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15);
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .modal-close {
             background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: color 0.2s;
         }
-        ::-webkit-scrollbar-thumb {
-            background: var(--scrollbar-thumb);
-            border-radius: 99px;
+
+        .modal-close:hover {
+            color: var(--error-color);
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--scrollbar-thumb-hover);
+
+        .modal-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .modal-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 0.35rem;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .modal-tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-tab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .modal-tab-content {
+            padding-top: 0.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .form-help {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .about-section h3, .changelog-section h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            border-left: 3px solid var(--accent-color);
+            padding-left: 0.5rem;
+        }
+
+        .about-section p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .changelog-list {
+            list-style: none;
+            padding: 0;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .changelog-list li {
+            margin-bottom: 0.4rem;
+            position: relative;
+            padding-left: 0.75rem;
+        }
+
+        .changelog-list li::before {
+            content: "•";
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -969,25 +1139,6 @@
             <div class="sidebar-brand">
                 <div class="brand-icon">M</div>
                 <div class="brand-name">MarkItDown Studio</div>
-            </div>
-
-            <!-- API Configuration Section -->
-            <div class="sidebar-section">
-                <div class="section-title">Cấu hình APIs & Cloud</div>
-                <div class="config-form">
-                    <div class="form-group">
-                        <label class="form-label">Gemini API Key</label>
-                        <input type="password" id="gemini-key" class="form-input" placeholder="Dịch & trích xuất lời thoại..." />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Azure DocIntel Endpoint</label>
-                        <input type="text" id="docintel-endpoint" class="form-input" placeholder="https://..." />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Azure CU Endpoint</label>
-                        <input type="text" id="cu-endpoint" class="form-input" placeholder="https://..." />
-                    </div>
-                </div>
             </div>
 
             <!-- Conversion History Section -->
@@ -1007,8 +1158,8 @@
                     <span>Phiên bản: <strong style="color: var(--accent-color);">v1.0.0</strong></span>
                     <span>Offline Secured</span>
                 </div>
-                <button id="btn-check-update" class="btn-action" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.5rem;" onclick="checkUpdates()">
-                    🔄 Kiểm tra cập nhật
+                <button class="btn-action btn-accent" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.5rem; gap: 0.35rem;" onclick="toggleSettingsModal(true)">
+                    ⚙️ Cài đặt & Hệ thống
                 </button>
             </div>
         </aside>
@@ -1066,6 +1217,11 @@
                         <div class="panel-title" id="src-panel-title">Tài Liệu Gốc</div>
                     </div>
                     <div class="panel-content" id="src-panel">
+                        <!-- Local Drag Overlay -->
+                        <div class="drag-target-local" id="src-drag-overlay">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📥</div>
+                            <span>Thả file vào đây để phân tích</span>
+                        </div>
                         <!-- Source Dropzone Placeholder -->
                         <div class="placeholder-box" id="src-placeholder">
                             <div class="placeholder-icon">📄</div>
@@ -1163,7 +1319,60 @@
                     </div>
                 </section>
             </div>
-        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Cài đặt & Thông tin hệ thống</h2>
+                <button class="modal-close" onclick="toggleSettingsModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Tabs within Modal for Settings / About & Changelog -->
+                <div class="modal-tabs">
+                    <button class="modal-tab-btn active" id="modal-tab-api" onclick="switchModalTab('api-settings')">Cấu hình APIs & Cloud</button>
+                    <button class="modal-tab-btn" id="modal-tab-about" onclick="switchModalTab('about-app')">Giới thiệu & Changelog</button>
+                </div>
+                
+                <div id="api-settings-tab" class="modal-tab-content">
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label class="form-label">Gemini API Key</label>
+                            <input type="password" id="gemini-key" class="form-input" placeholder="Dịch & trích xuất lời thoại..." />
+                            <small class="form-help">Sử dụng cho trích xuất lời thoại (transcribe) âm thanh và dịch thuật cao cấp.</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Azure DocIntel Endpoint</label>
+                            <input type="text" id="docintel-endpoint" class="form-input" placeholder="https://..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Azure CU Endpoint</label>
+                            <input type="text" id="cu-endpoint" class="form-input" placeholder="https://..." />
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="about-app-tab" class="modal-tab-content" style="display: none;">
+                    <div class="about-section">
+                        <h3>Mô tả & Giới thiệu</h3>
+                        <p><strong>MarkItDown Studio</strong> là công cụ chuyên nghiệp giúp chuyển đổi toàn diện các định dạng file (PDF, Word, Excel, PowerPoint, EPub, Zip, Audio, Image, v.v.) sang Markdown chuẩn hóa. Ứng dụng tích hợp công nghệ AI và OCR tiếng Việt để tối ưu hóa dữ liệu văn bản cho các mô hình ngôn ngữ lớn (LLMs).</p>
+                    </div>
+                    <div class="changelog-section" style="margin-top: 1.25rem;">
+                        <h3>Nhật ký phát triển (Changelog)</h3>
+                        <ul class="changelog-list">
+                            <li><strong>v1.0.0:</strong> Phiên bản đầu tiên: Hỗ trợ giao diện đối chiếu chia đôi (Split view), kéo thả trực tiếp, tìm kiếm từ khóa, chỉnh sửa trực tiếp Markdown, trích xuất OCR offline và tích hợp tự động cập nhật.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-check-update" class="btn-action btn-accent" onclick="checkUpdates()">
+                    🔄 Kiểm tra cập nhật
+                </button>
+                <button class="btn-action" onclick="toggleSettingsModal(false)">Đóng</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1556,31 +1765,54 @@
             return headers;
         }
 
-        // Drag-and-drop actions
-        window.addEventListener('dragenter', e => {
-            e.preventDefault();
-            dragOverlay.style.display = 'flex';
-        });
+        const srcDragOverlay = document.getElementById('src-drag-overlay');
+        const settingsModal = document.getElementById('settings-modal');
 
-        dragOverlay.addEventListener('dragleave', e => {
-            e.preventDefault();
-            if (e.clientX === 0 && e.clientY === 0) {
-                dragOverlay.style.display = 'none';
+        function toggleSettingsModal(show) {
+            settingsModal.style.display = show ? 'flex' : 'none';
+        }
+
+        function switchModalTab(tabName) {
+            const apiTab = document.getElementById('api-settings-tab');
+            const aboutTab = document.getElementById('about-app-tab');
+            const tabBtnApi = document.getElementById('modal-tab-api');
+            const tabBtnAbout = document.getElementById('modal-tab-about');
+            
+            if (tabName === 'api-settings') {
+                apiTab.style.display = 'block';
+                aboutTab.style.display = 'none';
+                tabBtnApi.classList.add('active');
+                tabBtnAbout.classList.remove('active');
+            } else {
+                apiTab.style.display = 'none';
+                aboutTab.style.display = 'block';
+                tabBtnApi.classList.remove('active');
+                tabBtnAbout.classList.add('active');
             }
+        }
+
+        // Drag-and-drop actions for local source panel
+        srcPanel.addEventListener('dragenter', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            srcDragOverlay.style.display = 'flex';
         });
 
-        dragOverlay.addEventListener('drop', e => {
+        srcDragOverlay.addEventListener('dragover', e => {
             e.preventDefault();
-            dragOverlay.style.display = 'none';
+            e.stopPropagation();
         });
 
-        window.addEventListener('dragover', e => {
+        srcDragOverlay.addEventListener('dragleave', e => {
             e.preventDefault();
+            e.stopPropagation();
+            srcDragOverlay.style.display = 'none';
         });
 
-        window.addEventListener('drop', e => {
+        srcDragOverlay.addEventListener('drop', e => {
             e.preventDefault();
-            dragOverlay.style.display = 'none';
+            e.stopPropagation();
+            srcDragOverlay.style.display = 'none';
             if (e.dataTransfer.files.length > 0) {
                 uploadFile(e.dataTransfer.files[0]);
             }
@@ -1971,7 +2203,9 @@
                 btn.innerHTML = origText;
                 
                 if (data.update_available) {
-                    applyUpdate(data.download_url, data.latest_version, data.release_notes);
+                    if (confirm(`Đã tìm thấy phiên bản mới: v${data.latest_version}\n\nBạn có muốn tải về và tiến hành cài đặt ngay bây giờ không?`)) {
+                        applyUpdate(data.download_url, data.latest_version, data.release_notes);
+                    }
                 } else {
                     alert(`Phiên bản hiện tại v${data.current_version} đang là phiên bản mới nhất!`);
                 }
@@ -1985,7 +2219,7 @@
 
         function applyUpdate(downloadUrl, latestVersion, releaseNotes) {
             if (!downloadUrl) {
-                alert("Không có đường dẫn tải file cập nhật. Vui lòng tải thủ công trên GitHub.");
+                alert("Không có đường dẫn tải tệp cài đặt cập nhật. Vui lòng tải thủ công trên GitHub.");
                 return;
             }
             
@@ -1998,7 +2232,7 @@
                     ${marked.parse(releaseNotes || "*Không có chi tiết thay đổi*")}
                 </div>
                 <div style="font-size: 0.8rem; color: #9ca3af; text-align: center; margin-top: 0.5rem;">
-                    Vui lòng chờ trong giây lát, ứng dụng sẽ tự động tải về và khởi động lại...
+                    Vui lòng chờ trong giây lát, ứng dụng sẽ tự động tải về và mở trình cài đặt...
                 </div>
             `;
             loading.style.display = 'flex';
@@ -2017,12 +2251,12 @@
                     alert("Cập nhật thất bại: " + data.error);
                 } else {
                     const statusText = document.querySelector("#loading p div:first-child");
-                    if (statusText) statusText.innerText = "Cài đặt thành công! Đang khởi động lại ứng dụng...";
+                    if (statusText) statusText.innerText = "Tải xuống thành công! Đang khởi động trình cài đặt...";
                 }
             })
             .catch(err => {
                 const statusText = document.querySelector("#loading p div:first-child");
-                if (statusText) statusText.innerText = "Đang áp dụng bản cập nhật và khởi động lại...";
+                if (statusText) statusText.innerText = "Đang khởi động trình cài đặt...";
             });
         }
 
@@ -2032,13 +2266,16 @@
             .then(res => res.json())
             .then(data => {
                 if (data.update_available) {
-                    const btn = document.getElementById('btn-check-update');
-                    btn.innerHTML = '✨ Đang tự động cập nhật...';
-                    btn.style.background = 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)';
-                    btn.style.color = '#ffffff';
-                    btn.style.border = 'none';
-                    
-                    applyUpdate(data.download_url, data.latest_version, data.release_notes);
+                    if (confirm(`Đã tìm thấy phiên bản mới: v${data.latest_version}\n\nBạn có muốn tải về và cài đặt cập nhật ngay bây giờ không?`)) {
+                        const btn = document.getElementById('btn-check-update');
+                        if (btn) {
+                            btn.innerHTML = '✨ Đang tự động cập nhật...';
+                            btn.style.background = 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)';
+                            btn.style.color = '#ffffff';
+                            btn.style.border = 'none';
+                        }
+                        applyUpdate(data.download_url, data.latest_version, data.release_notes);
+                    }
                 }
             }).catch(() => {});
         }, 3000);

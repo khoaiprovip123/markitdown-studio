@@ -37,10 +37,6 @@ jobs:
       run: |
         pyinstaller MarkItDownStudio.spec
 
-    - name: Package Dist (Create Zip)
-      run: |
-        powershell Compress-Archive -Path dist/MarkItDownStudio -DestinationPath dist/MarkItDownStudio.zip
-
     - name: Get Version from App
       id: get_version
       shell: powershell
@@ -48,13 +44,18 @@ jobs:
         $version = (Get-Content app.py | Select-String -Pattern 'VERSION\s*=\s*"([^"]+)"').Matches.Groups[1].Value
         echo "VERSION=$version" >> $env:GITHUB_OUTPUT
 
+    - name: Package Dist (Create Setup Installer)
+      shell: powershell
+      run: |
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion="${{ steps.get_version.outputs.VERSION }}" installer.iss
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ steps.get_version.outputs.VERSION }}.${{ github.run_number }}
         name: MarkItDown Studio v${{ steps.get_version.outputs.VERSION }} (Build #${{ github.run_number }})
         files: |
-          dist/MarkItDownStudio.zip
+          dist/MarkItDownStudioSetup.exe
         draft: false
         prerelease: false
       env:

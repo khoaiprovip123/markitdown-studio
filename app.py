@@ -531,6 +531,8 @@ def apply_update_endpoint():
         current_dir = os.path.dirname(current_exe)
         exe_name = os.path.basename(current_exe)
         
+        is_setup = "setup" in download_url.lower() or "installer" in download_url.lower()
+        
         if is_zip:
             # Giải nén zip ra một thư mục tạm riêng
             extract_dir = os.path.join(temp_dir, "markitdown_studio_extracted")
@@ -563,6 +565,16 @@ if errorlevel 1 (
 start "" "{current_exe}"
 rd /s /q "{extract_dir}" > nul 2>&1
 del "{temp_file_path}" > nul 2>&1
+(goto) 2>nul & del "%~f0"
+"""
+        elif is_setup:
+            # Trường hợp file Setup Installer (.exe)
+            bat_content = f"""@echo off
+chcp 65001 > nul
+echo Dang khoi dong trinh cai dat cap nhat MarkItDown Studio...
+timeout /t 2 /nobreak > nul
+taskkill /f /im "{exe_name}" > nul 2>&1
+start "" "{temp_file_path}"
 (goto) 2>nul & del "%~f0"
 """
         else:
