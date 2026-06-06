@@ -1590,10 +1590,7 @@
                 btn.innerHTML = origText;
                 
                 if (data.update_available) {
-                    const confirmUpdate = confirm(`Có phiên bản mới: v${data.latest_version}\nPhiên bản hiện tại: v${data.current_version}\n\nChi tiết thay đổi:\n${data.release_notes || "Không có chi tiết"}\n\nBạn có muốn tự động tải xuống và cài đặt ngay bây giờ không? (Ứng dụng sẽ tự khởi động lại)`);
-                    if (confirmUpdate) {
-                        applyUpdate(data.download_url);
-                    }
+                    applyUpdate(data.download_url);
                 } else {
                     alert(`Phiên bản hiện tại v${data.current_version} đang là phiên bản mới nhất!`);
                 }
@@ -1611,7 +1608,7 @@
                 return;
             }
             
-            loadingText.innerText = "Đang tải bản cập nhật và cài đặt tự động. Vui lòng chờ...";
+            loadingText.innerText = "Phát hiện phiên bản mới. Đang tự động tải và cài đặt cập nhật...";
             loading.style.display = 'flex';
             
             fetch('/api/apply_update', {
@@ -1627,12 +1624,12 @@
                     loading.style.display = 'none';
                     alert("Cập nhật thất bại: " + data.error);
                 } else {
-                    alert(data.message || "Đang tiến hành tự động cập nhật và khởi động lại ứng dụng...");
+                    loadingText.innerText = data.message || "Đang tự động khởi động lại ứng dụng với phiên bản mới...";
                 }
             })
             .catch(err => {
-                loading.style.display = 'none';
-                alert("Cập nhật thất bại hoặc mất kết nối trong quá trình cập nhật: " + err);
+                // Mất kết nối do app tắt để cập nhật và khởi động lại
+                loadingText.innerText = "Đang áp dụng bản cập nhật và khởi động lại ứng dụng...";
             });
         }
 
@@ -1643,15 +1640,12 @@
             .then(data => {
                 if (data.update_available) {
                     const btn = document.getElementById('btn-check-update');
-                    btn.innerHTML = '✨ Có bản cập nhật mới!';
+                    btn.innerHTML = '✨ Đang tự động cập nhật...';
                     btn.style.background = 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)';
                     btn.style.color = '#ffffff';
                     btn.style.border = 'none';
                     
-                    const confirmUpdate = confirm(`Phát hiện phiên bản mới: v${data.latest_version}\nBạn có muốn tự động tải xuống và nâng cấp ứng dụng ngay bây giờ không?`);
-                    if (confirmUpdate) {
-                        applyUpdate(data.download_url);
-                    }
+                    applyUpdate(data.download_url);
                 }
             }).catch(() => {});
         }, 3000);
