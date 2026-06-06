@@ -360,7 +360,7 @@ def transcribe_audio_via_gemini(file_path, api_key, ext):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', version=VERSION)
 
 @app.route('/convert', methods=['POST'])
 def convert_file():

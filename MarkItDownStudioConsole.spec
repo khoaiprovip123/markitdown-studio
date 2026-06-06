@@ -36,6 +36,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    icon='icon.ico',
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,

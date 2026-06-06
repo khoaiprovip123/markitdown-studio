@@ -4,7 +4,7 @@ import time
 import socket
 import threading
 import webview
-from app import app
+from app import app, VERSION
 
 def find_free_port():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # Launch PyWebView native desktop window
     webview.create_window(
-        title='MarkItDown Studio - Version 1.0.0',
+        title=f'MarkItDown Studio - Version {VERSION}',
         url=f'http://127.0.0.1:{port}',
         width=1366,
         height=800,
