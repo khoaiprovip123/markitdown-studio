@@ -3,27 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MarkItDown Studio - Đối Chiếu Tài Liệu Cao Cấp</title>
+    <title>MarkItDown Studio - Dashboard Đối Chiếu Tài Liệu Cao Cấp</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --bg-color: #030712;
-            --panel-bg: rgba(17, 24, 39, 0.45);
-            --border-color: rgba(255, 255, 255, 0.06);
-            --border-glow: rgba(99, 102, 241, 0.2);
+            --bg-color: #080b11;
+            --panel-bg: rgba(15, 23, 42, 0.6);
+            --sidebar-bg: rgba(11, 17, 32, 0.85);
+            --border-color: rgba(255, 255, 255, 0.05);
+            --border-glow: rgba(99, 102, 241, 0.15);
             --accent-color: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.4);
+            --accent-hover: #4f46e5;
             --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
             --text-primary: #f3f4f6;
             --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --error-color: #ef4444;
-            --scrollbar-thumb: rgba(255, 255, 255, 0.1);
-            --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+            --scrollbar-thumb: rgba(255, 255, 255, 0.08);
+            --scrollbar-thumb-hover: rgba(255, 255, 255, 0.15);
+            --glow-color: rgba(99, 102, 241, 0.3);
         }
 
         * {
@@ -36,8 +39,8 @@
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-color);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(6, 180, 212, 0.1) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 45%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 45%);
             color: var(--text-primary);
             height: 100vh;
             display: flex;
@@ -45,46 +48,261 @@
             overflow: hidden;
         }
 
-        /* Header */
-        header {
+        /* App Container Grid */
+        .app-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.85rem 2rem;
-            background: rgba(3, 7, 18, 0.7);
-            border-bottom: 1px solid var(--border-color);
-            backdrop-filter: blur(16px);
-            z-index: 20;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
         }
 
-        .logo-area {
+        /* Sidebar Left (Config + History) */
+        .sidebar {
+            width: 320px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 30;
+            backdrop-filter: blur(20px);
+        }
+
+        .sidebar-brand {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            background: rgba(0, 0, 0, 0.15);
         }
 
-        .logo-icon {
+        .brand-icon {
             width: 2.2rem;
             height: 2.2rem;
             background: var(--accent-gradient);
-            border-radius: 0.6rem;
+            border-radius: 0.65rem;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
             font-size: 1.35rem;
             color: #ffffff;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
         }
 
-        .logo-title {
+        .brand-name {
             font-weight: 700;
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             letter-spacing: -0.025em;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-section {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-clear {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .btn-clear:hover {
+            color: var(--error-color);
+        }
+
+        .config-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.55rem 0.75rem;
+            border-radius: 0.45rem;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+        }
+
+        /* History List */
+        .history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 0.5rem;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateX(2px);
+        }
+
+        .history-item.active {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .history-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+
+        .history-item-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item-meta {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-history-delete {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-history-delete:hover {
+            color: var(--error-color);
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .history-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Main Workspace Area */
+        .main-workspace {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Top Header Navigation */
+        .app-header {
+            height: 60px;
+            background: rgba(3, 7, 18, 0.4);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            backdrop-filter: blur(10px);
+            z-index: 20;
+        }
+
+        .header-title-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
         .header-actions {
@@ -93,183 +311,40 @@
             gap: 0.75rem;
         }
 
-        .btn-settings {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            width: 2.3rem;
-            height: 2.3rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .btn-settings:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #6366f1;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
-        }
-
-        .upload-btn-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .btn-upload {
-            background: var(--accent-gradient);
-            color: white;
-            padding: 0.6rem 1.3rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-        }
-
-        .btn-upload:hover {
-            transform: translateY(-1.5px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-        }
-
-        .upload-btn-wrapper input[type=file] {
-            font-size: 100px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        /* Settings Drawer Panel */
-        .settings-drawer {
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 320px;
-            height: 100%;
-            background: rgba(11, 15, 25, 0.95);
-            border-left: 1px solid var(--border-color);
-            z-index: 100;
-            padding: 2rem 1.5rem;
-            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(20px);
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .settings-drawer.open {
-            right: 0;
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.75rem;
-        }
-
-        .settings-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: #ffffff;
-        }
-
-        .btn-close-settings {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 1.5rem;
-            height: 1.5rem;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .btn-close-settings:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-        }
-
-        .settings-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .settings-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-
-        .settings-input {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 0.6rem 0.8rem;
-            border-radius: 0.375rem;
-            font-size: 0.85rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .settings-input:focus {
-            border-color: #6366f1;
-            background: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
-        }
-
-        /* Toolbar */
+        /* Toolbar Row */
         .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.6rem 2rem;
-            background: rgba(17, 24, 39, 0.25);
+            height: 52px;
+            background: rgba(17, 24, 39, 0.2);
             border-bottom: 1px solid var(--border-color);
-            backdrop-filter: blur(12px);
-            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
             gap: 1.5rem;
+            z-index: 15;
+            backdrop-filter: blur(5px);
         }
 
         .search-box {
             display: flex;
             align-items: center;
-            background: rgba(11, 15, 25, 0.6);
+            background: rgba(11, 17, 32, 0.7);
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
-            padding: 0.45rem 0.85rem;
-            flex-grow: 1;
-            max-width: 480px;
+            padding: 0.4rem 0.75rem;
+            width: 380px;
             gap: 0.5rem;
-            transition: all 0.25s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-box:focus-within {
-            border-color: #6366f1;
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
-            background: rgba(11, 15, 25, 0.8);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+            background: rgba(11, 17, 32, 0.9);
         }
 
         .search-icon {
-            color: var(--text-secondary);
+            color: var(--text-muted);
             flex-shrink: 0;
         }
 
@@ -277,20 +352,20 @@
             background: transparent;
             border: none;
             color: var(--text-primary);
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             width: 100%;
             outline: none;
             font-family: inherit;
         }
 
         .search-counter {
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            background: rgba(99, 102, 241, 0.3);
-            padding: 0.15rem 0.45rem;
+            font-size: 0.7rem;
+            color: #ffffff;
+            background: rgba(99, 102, 241, 0.25);
+            padding: 0.1rem 0.4rem;
             border-radius: 0.25rem;
             white-space: nowrap;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .search-nav-btn {
@@ -298,112 +373,47 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 0.2rem;
+            padding: 0.15rem;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 0.25rem;
-            transition: background 0.2s, color 0.2s;
+            transition: all 0.2s;
         }
 
         .search-nav-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text-primary);
         }
 
         .search-nav-btn:disabled {
-            opacity: 0.25;
+            opacity: 0.2;
             cursor: not-allowed;
-        }
-
-        /* URL Converter Box */
-        .url-box-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            width: 100%;
-            max-width: 440px;
-            background: rgba(0,0,0,0.25);
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .url-row {
-            display: flex;
-            background: rgba(11, 15, 25, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 0.35rem 0.5rem;
-            gap: 0.5rem;
-            transition: all 0.25s;
-        }
-
-        .url-row:focus-within {
-            border-color: #a855f7;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
-            background: rgba(11, 15, 25, 0.8);
-        }
-
-        .url-input {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 0.875rem;
-            width: 100%;
-            outline: none;
-            font-family: inherit;
-            padding-left: 0.5rem;
-        }
-
-        .btn-convert-url {
-            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-            border: none;
-            color: white;
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
-        }
-
-        .btn-convert-url:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.55);
         }
 
         .toolbar-options {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .option-toggle {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
             cursor: pointer;
             user-select: none;
             font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .option-toggle:hover {
-            color: var(--text-primary);
         }
 
         .option-toggle input[type=checkbox] {
             appearance: none;
-            width: 1.6rem;
-            height: 0.9rem;
+            width: 1.5rem;
+            height: 0.85rem;
             background: #27272a;
-            border-radius: 999px;
+            border-radius: 99px;
             position: relative;
             cursor: pointer;
             outline: none;
@@ -412,14 +422,14 @@
         }
 
         .option-toggle input[type=checkbox]:checked {
-            background: #6366f1;
+            background: var(--accent-color);
         }
 
         .option-toggle input[type=checkbox]::before {
             content: '';
             position: absolute;
-            width: 0.65rem;
-            height: 0.65rem;
+            width: 0.6rem;
+            height: 0.6rem;
             border-radius: 50%;
             background: white;
             top: 0.075rem;
@@ -428,19 +438,16 @@
         }
 
         .option-toggle input[type=checkbox]:checked::before {
-            transform: translateX(0.7rem);
+            transform: translateX(0.65rem);
         }
 
-        /* Workspace Grid */
-        .workspace {
+        /* Split Panels */
+        .workspace-grid {
             display: flex;
-            flex-direction: row;
             flex-grow: 1;
             overflow: hidden;
-            background-color: transparent;
             position: relative;
             padding: 0.75rem 1rem;
-            gap: 0;
         }
 
         .panel {
@@ -451,8 +458,8 @@
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 0.75rem;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         }
 
         #left-panel {
@@ -480,7 +487,7 @@
         .resizer-line {
             width: 2px;
             height: 40px;
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 255, 255, 0.12);
             border-radius: 99px;
             transition: all 0.2s ease;
         }
@@ -491,7 +498,7 @@
             box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
         }
 
-        /* Drag blocker overlay to prevent iframe stealing events */
+        /* Drag blocker overlay */
         #drag-blocker {
             position: fixed;
             top: 0;
@@ -508,17 +515,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.85rem 1.5rem;
+            padding: 0.65rem 1.25rem;
             background: rgba(255, 255, 255, 0.02);
             border-bottom: 1px solid var(--border-color);
-            min-height: 52px;
+            min-height: 48px;
         }
 
         .panel-title {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.07em;
+            letter-spacing: 0.06em;
             color: var(--text-secondary);
             display: flex;
             align-items: center;
@@ -529,8 +536,7 @@
             flex-grow: 1;
             overflow-y: auto;
             position: relative;
-            padding: 1.5rem;
-            scroll-behavior: auto;
+            padding: 1.25rem;
         }
 
         /* Drag Over State */
@@ -540,18 +546,18 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(99, 102, 241, 0.08);
-            border: 2px dashed rgba(99, 102, 241, 0.5);
+            background: rgba(99, 102, 241, 0.07);
+            border: 2px dashed rgba(99, 102, 241, 0.4);
             border-radius: 0.75rem;
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 100;
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #a5b4fc;
-            backdrop-filter: blur(8px);
-            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
         }
 
         /* File Preview Area */
@@ -560,8 +566,8 @@
             height: 100%;
             border: none;
             background-color: #ffffff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 0.4rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .placeholder-box {
@@ -572,50 +578,50 @@
             height: 100%;
             color: var(--text-secondary);
             text-align: center;
-            gap: 1rem;
+            gap: 0.85rem;
             padding: 2rem;
-            border: 1px dashed rgba(255, 255, 255, 0.04);
-            border-radius: 0.75rem;
-            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed rgba(255, 255, 255, 0.03);
+            border-radius: 0.6rem;
+            background: rgba(255, 255, 255, 0.005);
         }
 
         .placeholder-icon {
-            font-size: 3.25rem;
-            opacity: 0.5;
+            font-size: 3rem;
+            opacity: 0.4;
             animation: float 4s ease-in-out infinite;
         }
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
+            50% { transform: translateY(-5px); }
         }
 
         .placeholder-formats {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            max-width: 450px;
+            gap: 0.4rem;
+            margin-top: 0.75rem;
+            max-width: 420px;
         }
 
         .format-badge {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-secondary);
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.45rem;
             border-radius: 0.25rem;
             font-weight: 500;
         }
 
-        /* Tabs on Right Panel */
+        /* Tab Switchers */
         .tab-group {
             display: flex;
-            gap: 0.25rem;
-            background: rgba(0, 0, 0, 0.3);
+            gap: 0.2rem;
+            background: rgba(0, 0, 0, 0.25);
             padding: 0.2rem;
-            border-radius: 0.5rem;
+            border-radius: 0.45rem;
             border: 1px solid var(--border-color);
         }
 
@@ -623,62 +629,59 @@
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            padding: 0.4rem 0.95rem;
-            font-size: 0.8rem;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 0.375rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.35rem;
+            transition: all 0.2s ease;
         }
 
         .tab-btn:hover {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .tab-btn.active {
             color: white;
             background: var(--accent-color);
-            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
         }
 
-        /* Output Formatting */
+        /* Output Viewers */
         .markdown-rendered {
-            line-height: 1.75;
+            line-height: 1.7;
             color: #d1d5db;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3 {
             color: #ffffff;
-            margin-top: 1.8rem;
-            margin-bottom: 0.85rem;
+            margin-top: 1.6rem;
+            margin-bottom: 0.75rem;
             font-weight: 700;
         }
         
-        .markdown-rendered h1 { font-size: 1.6rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .markdown-rendered h2 { font-size: 1.3rem; }
-        .markdown-rendered h3 { font-size: 1.1rem; }
-
-        .markdown-rendered p {
-            margin-bottom: 1.25rem;
-        }
+        .markdown-rendered h1 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+        .markdown-rendered h2 { font-size: 1.2rem; }
+        .markdown-rendered h3 { font-size: 1.05rem; }
+        .markdown-rendered p { margin-bottom: 1rem; }
 
         .markdown-rendered code {
             font-family: 'Fira Code', monospace;
-            background: rgba(255, 255, 255, 0.06);
-            padding: 0.2rem 0.45rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.15rem 0.4rem;
             border-radius: 0.25rem;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #a5b4fc;
         }
 
         .markdown-rendered pre {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 1.25rem;
-            border-radius: 0.6rem;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 1rem;
+            border-radius: 0.5rem;
             overflow-x: auto;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
             border: 1px solid var(--border-color);
         }
 
@@ -688,105 +691,186 @@
             color: #e2e8f0;
         }
 
-        .markdown-rendered ul, .markdown-rendered ol {
-            margin-bottom: 1.25rem;
-            padding-left: 1.75rem;
-        }
-
         .markdown-rendered table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
 
         .markdown-rendered th, .markdown-rendered td {
             border: 1px solid var(--border-color);
-            padding: 0.65rem 0.85rem;
+            padding: 0.55rem 0.75rem;
             text-align: left;
         }
 
         .markdown-rendered th {
-            background: rgba(255, 255, 255, 0.02);
-            font-weight: 600;
+            background: rgba(255, 255, 255, 0.01);
             color: #ffffff;
+        }
+
+        /* Edit and Raw views */
+        .markdown-editor-textarea {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            resize: none;
+            outline: none;
+            line-height: 1.6;
+        }
+
+        .markdown-editor-textarea:focus {
+            border-color: var(--accent-color);
+            background: rgba(0, 0, 0, 0.35);
         }
 
         .raw-text {
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.35);
-            color: #34d399;
+            color: #10b981;
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
-            padding: 1.25rem;
+            padding: 1rem;
             font-family: 'Fira Code', monospace;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             resize: none;
             outline: none;
-            line-height: 1.65;
+            line-height: 1.6;
         }
 
-        /* Search highlights */
-        mark.search-match {
-            background-color: rgba(245, 158, 11, 0.35);
-            color: #ffffff;
-            border-bottom: 2px solid #f59e0b;
-            border-radius: 2px;
-            padding: 0.05rem 0.1rem;
-        }
-
-        mark.search-match.active-match {
-            background-color: rgba(239, 68, 68, 0.55);
-            color: #ffffff;
-            border-bottom: 2px solid #ef4444;
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
-        }
-
-        /* Action Buttons */
+        /* Action elements */
         .actions-wrapper {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .btn-action {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 0.45rem 0.9rem;
-            border-radius: 0.375rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.35rem;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.3rem;
         }
 
         .btn-action:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
         .btn-action:disabled {
-            opacity: 0.25;
+            opacity: 0.2;
             cursor: not-allowed;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+        .btn-accent {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
         }
-        ::-webkit-scrollbar-track {
+
+        .btn-accent:hover:not(:disabled) {
+            transform: translateY(-0.5px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Custom Drag Drop Button */
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* URL Converter Tab Panel */
+        .url-box-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            width: 100%;
+            max-width: 420px;
+            background: rgba(0,0,0,0.2);
+            padding: 1.25rem;
+            border-radius: 0.6rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .url-row {
+            display: flex;
+            background: rgba(11, 17, 32, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.45rem;
+            padding: 0.3rem 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .url-row:focus-within {
+            border-color: #a855f7;
+            background: rgba(11, 17, 32, 0.8);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
+        }
+
+        .url-input {
             background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+            padding-left: 0.35rem;
         }
-        ::-webkit-scrollbar-thumb {
-            background: var(--scrollbar-thumb);
-            border-radius: 99px;
+
+        /* Markdown Formatting Toolbar */
+        .editor-toolbar {
+            display: flex;
+            gap: 0.25rem;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            padding: 0.35rem;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            flex-wrap: wrap;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--scrollbar-thumb-hover);
+
+        .editor-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .editor-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* Loading */
@@ -796,7 +880,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(3, 7, 18, 0.85);
+            background: rgba(8, 11, 17, 0.9);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -837,188 +921,249 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.15); opacity: 0.8; }
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+
+        /* Search highlights */
+        mark.search-match {
+            background-color: rgba(245, 158, 11, 0.35);
+            color: #ffffff;
+            border-bottom: 2px solid #f59e0b;
+            border-radius: 2px;
+            padding: 0.05rem 0.1rem;
+        }
+
+        mark.search-match.active-match {
+            background-color: rgba(239, 68, 68, 0.55);
+            color: #ffffff;
+            border-bottom: 2px solid #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover);
         }
     </style>
 </head>
 <body id="drop-zone">
-    <!-- Blocker div to capture mouse drag over iframe -->
+    <!-- Drag overlay and block blocker -->
     <div id="drag-blocker"></div>
-    <div class="drag-target" id="drag-overlay">Kéo thả file vào đây để chuyển đổi</div>
+    <div class="drag-target" id="drag-overlay">Kéo thả tài liệu vào đây để đối chiếu</div>
 
-    <!-- Settings Drawer -->
-    <div class="settings-drawer" id="settings-drawer">
-        <div class="settings-header">
-            <div class="settings-title">Cấu hình API & Cloud</div>
-            <button class="btn-close-settings" id="btn-close-settings" title="Đóng">✕</button>
-        </div>
-        
-        <div class="settings-group">
-            <label class="settings-label" for="gemini-key">Gemini API Key</label>
-            <input type="password" id="gemini-key" class="settings-input" placeholder="AI transcript & giải mã âm thanh..." />
-        </div>
-
-        <div class="settings-group">
-            <label class="settings-label" for="docintel-endpoint">Azure DocIntel Endpoint</label>
-            <input type="text" id="docintel-endpoint" class="settings-input" placeholder="Azure Document Intelligence Endpoint..." />
-        </div>
-
-        <div class="settings-group">
-            <label class="settings-label" for="cu-endpoint">Azure CU Endpoint</label>
-            <input type="text" id="cu-endpoint" class="settings-input" placeholder="Azure Content Understanding Endpoint..." />
-        </div>
-
-        <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-top: 1rem;">
-            * Các thông số được lưu bảo mật trong LocalStorage của trình duyệt và chỉ gửi đi dưới dạng Request Header để xử lý file.
-        </p>
-
-        <!-- Giới thiệu & Cập nhật -->
-        <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <div class="logo-icon" style="width: 1.5rem; height: 1.5rem; font-size: 0.9rem; border-radius: 0.35rem; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);">M</div>
-                <span style="font-weight: 600; font-size: 0.9rem; color: #ffffff;">MarkItDown Studio Desktop</span>
+    <div class="app-container">
+        <!-- Sidebar (Left Panel) -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">M</div>
+                <div class="brand-name">MarkItDown Studio</div>
             </div>
-            <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
-                Phiên bản: <strong style="color: var(--accent-color);">v1.0.0</strong><br>
-                Ứng dụng đối chiếu tài liệu & trích xuất Markdown chuyên nghiệp, chạy offline bảo mật tuyệt đối.
-            </p>
-            <button id="btn-check-update" class="btn-action" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.45rem;" onclick="checkUpdates()">
-                🔄 Kiểm tra cập nhật
-            </button>
-        </div>
-    </div>
-    
-    <header>
-        <div class="logo-area">
-            <div class="logo-icon">M</div>
-            <div class="logo-title">MarkItDown Studio</div>
-        </div>
-        <div class="header-actions">
-            <button class="btn-settings" id="btn-settings-trigger" title="Cấu hình APIs / Azure Endpoint">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            </button>
-            <div class="upload-btn-wrapper" id="header-upload-btn-wrapper">
-                <button class="btn-upload">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                    Chọn tài liệu
+
+            <!-- API Configuration Section -->
+            <div class="sidebar-section">
+                <div class="section-title">Cấu hình APIs & Cloud</div>
+                <div class="config-form">
+                    <div class="form-group">
+                        <label class="form-label">Gemini API Key</label>
+                        <input type="password" id="gemini-key" class="form-input" placeholder="Dịch & trích xuất lời thoại..." />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Azure DocIntel Endpoint</label>
+                        <input type="text" id="docintel-endpoint" class="form-input" placeholder="https://..." />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Azure CU Endpoint</label>
+                        <input type="text" id="cu-endpoint" class="form-input" placeholder="https://..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion History Section -->
+            <div class="sidebar-section" style="flex-grow: 1; border-bottom: none; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="section-title">
+                    Lịch sử đối chiếu
+                    <button class="btn-clear" onclick="clearHistory()">Xóa hết</button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <!-- History elements loaded dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-secondary);">
+                    <span>Phiên bản: <strong style="color: var(--accent-color);">v1.0.0</strong></span>
+                    <span>Offline Secured</span>
+                </div>
+                <button id="btn-check-update" class="btn-action" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.5rem;" onclick="checkUpdates()">
+                    🔄 Kiểm tra cập nhật
                 </button>
-                <input type="file" id="file-selector" />
             </div>
-        </div>
-    </header>
+        </aside>
 
-    <div class="toolbar">
-        <!-- Search Bar -->
-        <div class="search-box">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm từ khóa trong kết quả Markdown..." disabled>
-            <span id="search-counter" class="search-counter" style="display: none;">0/0</span>
-            <button id="search-prev" class="search-nav-btn" title="Kết quả trước" disabled>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
-            </button>
-            <button id="search-next" class="search-nav-btn" title="Kết quả sau" disabled>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-        </div>
-
-        <div class="toolbar-options">
-            <label class="option-toggle" title="Tự động đồng bộ vị trí cuộn giữa tài liệu nguồn và kết quả">
-                <input type="checkbox" id="sync-scroll-check" checked>
-                Cuộn đồng bộ
-            </label>
-        </div>
-    </div>
-
-    <div class="workspace" id="workspace">
-        <!-- Panel Gốc -->
-        <div class="panel" id="left-panel">
-            <div class="panel-header">
-                <!-- Source View Tabs -->
-                <div class="tab-group" id="src-tab-group">
-                    <button class="tab-btn active" id="src-tab-file-btn" onclick="switchSrcTab('file')">File Cục Bộ</button>
-                    <button class="tab-btn" id="src-tab-url-btn" onclick="switchSrcTab('url')">Dán Link / YouTube</button>
+        <!-- Main Workspace (Center + Right Panels) -->
+        <main class="main-workspace">
+            <!-- App Header -->
+            <header class="app-header">
+                <div class="header-title-area">
+                    <div class="header-title" id="active-document-title">Chưa chọn tài liệu đối chiếu</div>
                 </div>
-                <!-- Active file title (Hidden by default, shown when document loaded) -->
-                <div class="panel-title" id="src-title" style="display: none;">Tài Liệu Gốc</div>
-                <div class="actions-wrapper" id="src-info">
-                    <button class="btn-action" id="btn-reset-src" style="display: none;" onclick="resetLeftPanel()" title="Đóng tài liệu và chọn cái khác">✕ Đóng</button>
-                </div>
-            </div>
-            <div class="panel-content" id="src-panel">
-                <!-- Drag and Drop zone -->
-                <div class="placeholder-box" id="src-placeholder">
-                    <div class="placeholder-icon">📄</div>
-                    <p style="font-weight: 500;">Hỗ trợ kéo thả hoặc chọn file từ máy tính</p>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 380px;">Kéo trực tiếp file của bạn thả vào đây để bắt đầu đối chiếu lập tức</p>
-                    <div class="placeholder-formats">
-                        <span class="format-badge">PDF</span>
-                        <span class="format-badge">Word</span>
-                        <span class="format-badge">Excel</span>
-                        <span class="format-badge">PowerPoint</span>
-                        <span class="format-badge">EPub</span>
-                        <span class="format-badge">ZIP</span>
-                        <span class="format-badge">Audio</span>
-                        <span class="format-badge">Image</span>
-                        <span class="format-badge">HTML/CSV/JSON/XML</span>
+                <div class="header-actions">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-action btn-accent" style="padding: 0.55rem 1.25rem;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 0.35rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            Chọn tài liệu gốc
+                        </button>
+                        <input type="file" id="file-selector" />
                     </div>
+                    <button class="btn-action" id="btn-reset-src" style="display: none;" onclick="resetWorkspace()">✕ Đóng</button>
                 </div>
+            </header>
 
-                <!-- URL input tab (Hidden by default) -->
-                <div class="placeholder-box" id="url-placeholder" style="display: none; gap: 1.5rem;">
-                    <div class="placeholder-icon" style="color: #a855f7;">🔗</div>
-                    <div>
-                        <p style="font-weight: 500; margin-bottom: 0.35rem;">Trích xuất nội dung từ liên kết</p>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 340px;">Hỗ trợ trích xuất phụ đề (transcript) tiếng Việt từ link YouTube, hoặc chuyển đổi trang web bất kỳ sang Markdown.</p>
-                    </div>
-                    
-                    <div class="url-box-container">
-                        <div class="url-row">
-                            <input type="text" id="url-input" class="url-input" placeholder="Dán link YouTube hoặc URL web vào đây...">
-                        </div>
-                        <button id="btn-convert-url" class="btn-convert-url" style="width: 100%;">Tiến Hành Chuyển Đổi</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Resizer Bar (Splitter) -->
-        <div class="resizer" id="drag-bar" title="Nhấp đúp chuột để chia đều 50/50">
-            <div class="resizer-line"></div>
-        </div>
-
-        <!-- Panel Markdown -->
-        <div class="panel" id="right-panel">
-            <div class="panel-header">
-                <div class="tab-group">
-                    <button class="tab-btn active" id="tab-btn-rendered" onclick="switchTab('rendered')">Đối Chiếu (Rendered)</button>
-                    <button class="tab-btn" id="tab-btn-raw" onclick="switchTab('raw')">Mã Nguồn (Raw)</button>
-                </div>
-                <div class="actions-wrapper">
-                    <button class="btn-action" id="btn-copy" style="display: none;" onclick="copyMarkdown()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        Copy
+            <!-- Toolbar Options -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="search-input" class="search-input" placeholder="Tìm từ khóa trong kết quả Markdown..." disabled>
+                    <span id="search-counter" class="search-counter" style="display: none;">0/0</span>
+                    <button id="search-prev" class="search-nav-btn" title="Trước" disabled>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+                    </button>
+                    <button id="search-next" class="search-nav-btn" title="Sau" disabled>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                 </div>
-            </div>
-            <div class="panel-content" id="dest-panel">
-                <div class="loading-overlay" id="loading">
-                    <div class="spinner-container">
-                        <div class="spinner"></div>
-                        <div class="spinner-glow"></div>
-                    </div>
-                    <p id="loading-text" style="font-weight: 500; font-size: 0.95rem; color: #a5b4fc;">Đang chuyển đổi tài liệu bằng MarkItDown...</p>
+
+                <div class="toolbar-options">
+                    <label class="option-toggle" title="Tự động đồng bộ vị trí cuộn giữa tài liệu gốc và kết quả">
+                        <input type="checkbox" id="sync-scroll-check" checked>
+                        Cuộn đồng bộ
+                    </label>
                 </div>
-                
-                <div class="placeholder-box" id="dest-placeholder">
-                    <div class="placeholder-icon">✨</div>
-                    <p style="font-weight: 500;">Kết quả Markdown sẽ hiển thị ở đây để đối chiếu</p>
+            </div>
+
+            <!-- Workspace Panels Grid -->
+            <div class="workspace-grid" id="workspace">
+                <!-- Left Panel (Source Document Viewer) -->
+                <section class="panel" id="left-panel">
+                    <div class="panel-header">
+                        <div class="tab-group" id="src-tab-group">
+                            <button class="tab-btn active" id="src-tab-file-btn" onclick="switchSrcTab('file')">File xem trước</button>
+                            <button class="tab-btn" id="src-tab-url-btn" onclick="switchSrcTab('url')">Dán Link / YouTube</button>
+                        </div>
+                        <div class="panel-title" id="src-panel-title">Tài Liệu Gốc</div>
+                    </div>
+                    <div class="panel-content" id="src-panel">
+                        <!-- Source Dropzone Placeholder -->
+                        <div class="placeholder-box" id="src-placeholder">
+                            <div class="placeholder-icon">📄</div>
+                            <p style="font-weight: 500;">Hỗ trợ kéo thả hoặc chọn file từ máy tính</p>
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); max-width: 320px;">Kéo trực tiếp file của bạn thả vào đây để bắt đầu đối chiếu lập tức</p>
+                            <div class="placeholder-formats">
+                                <span class="format-badge">PDF</span>
+                                <span class="format-badge">Word</span>
+                                <span class="format-badge">Excel</span>
+                                <span class="format-badge">PowerPoint</span>
+                                <span class="format-badge">EPub</span>
+                                <span class="format-badge">ZIP</span>
+                                <span class="format-badge">Audio</span>
+                                <span class="format-badge">Image</span>
+                                <span class="format-badge">HTML/CSV/JSON/XML</span>
+                            </div>
+                        </div>
+
+                        <!-- URL input box (Hidden by default) -->
+                        <div class="placeholder-box" id="url-placeholder" style="display: none; gap: 1.25rem;">
+                            <div class="placeholder-icon" style="color: #a855f7;">🔗</div>
+                            <div>
+                                <p style="font-weight: 500; margin-bottom: 0.25rem;">Trích xuất nội dung từ liên kết</p>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary); max-width: 340px;">Hỗ trợ phụ đề YouTube, hoặc chuyển đổi trang web bất kỳ sang Markdown.</p>
+                            </div>
+                            
+                            <div class="url-box-container">
+                                <div class="url-row">
+                                    <input type="text" id="url-input" class="url-input" placeholder="Dán link YouTube hoặc URL web vào đây...">
+                                </div>
+                                <button id="btn-convert-url" class="btn-convert-url" style="width: 100%; border: none;">Tiến Hành Chuyển Đổi</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resizer Splitter -->
+                <div class="resizer" id="drag-bar" title="Nhấp đúp chuột để chia đều 50/50">
+                    <div class="resizer-line"></div>
                 </div>
 
-                <div id="rendered-view" class="markdown-rendered" style="display: none;"></div>
-                <textarea id="raw-view" class="raw-text" style="display: none;" readonly></textarea>
+                <!-- Right Panel (Markdown workspace) -->
+                <section class="panel" id="right-panel">
+                    <div class="panel-header">
+                        <div class="tab-group">
+                            <button class="tab-btn active" id="tab-btn-rendered" onclick="switchTab('rendered')">Đối Chiếu (View)</button>
+                            <button class="tab-btn" id="tab-btn-edit" onclick="switchTab('edit')">Chỉnh sửa (Edit)</button>
+                            <button class="tab-btn" id="tab-btn-raw" onclick="switchTab('raw')">Mã nguồn (Raw)</button>
+                        </div>
+                        <div class="actions-wrapper">
+                            <button class="btn-action" id="btn-copy" style="display: none;" onclick="copyMarkdown()">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                Copy
+                            </button>
+                            <button class="btn-action" id="btn-download" style="display: none;" onclick="downloadMarkdown()">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 3v12"/></svg>
+                                Tải về .md
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content" id="dest-panel">
+                        <!-- Transcribing/Processing loading overlay -->
+                        <div class="loading-overlay" id="loading">
+                            <div class="spinner-container">
+                                <div class="spinner"></div>
+                                <div class="spinner-glow"></div>
+                            </div>
+                            <p id="loading-text" style="font-weight: 500; font-size: 0.9rem; color: #a5b4fc; margin-top: 0.5rem; text-align: center;">Đang chuyển đổi tài liệu...</p>
+                        </div>
+                        
+                        <div class="placeholder-box" id="dest-placeholder">
+                            <div class="placeholder-icon">✨</div>
+                            <p style="font-weight: 500;">Kết quả Markdown sẽ hiển thị ở đây để đối chiếu</p>
+                        </div>
+
+                        <!-- 3 Workspace tab views -->
+                        <div id="rendered-view" class="markdown-rendered" style="display: none;"></div>
+                        
+                        <div id="edit-view" style="display: none; height: 100%; flex-direction: column;">
+                            <!-- Formatting quick toolbar -->
+                            <div class="editor-toolbar">
+                                <button class="editor-btn" onclick="insertFormat('bold')">B</button>
+                                <button class="editor-btn" onclick="insertFormat('italic')">I</button>
+                                <button class="editor-btn" onclick="insertFormat('h1')">H1</button>
+                                <button class="editor-btn" onclick="insertFormat('h2')">H2</button>
+                                <button class="editor-btn" onclick="insertFormat('code')">Code</button>
+                                <button class="editor-btn" onclick="insertFormat('link')">Link</button>
+                                <button class="editor-btn" onclick="insertFormat('table')">Table</button>
+                                <button class="editor-btn" onclick="insertFormat('list')">List</button>
+                            </div>
+                            <textarea id="editor-textarea" class="markdown-editor-textarea" oninput="onEditorInputChange()"></textarea>
+                        </div>
+
+                        <textarea id="raw-view" class="raw-text" style="display: none;" readonly></textarea>
+                    </div>
+                </section>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
@@ -1033,29 +1178,26 @@
         const destPlaceholder = document.getElementById('dest-placeholder');
         const srcPanel = document.getElementById('src-panel');
         const destPanel = document.getElementById('dest-panel');
-        const srcTitle = document.getElementById('src-title');
         
+        const activeDocTitle = document.getElementById('active-document-title');
         const renderedView = document.getElementById('rendered-view');
+        const editView = document.getElementById('edit-view');
+        const editorTextarea = document.getElementById('editor-textarea');
         const rawView = document.getElementById('raw-view');
+        
         const btnCopy = document.getElementById('btn-copy');
+        const btnDownload = document.getElementById('btn-download');
 
-        // Tab groups and headers
-        const srcTabGroup = document.getElementById('src-tab-group');
-        const btnResetSrc = document.getElementById('btn-reset-src');
-        const headerUploadBtnWrapper = document.getElementById('header-upload-btn-wrapper');
-
-        // Settings Drawer Inputs
-        const settingsDrawer = document.getElementById('settings-drawer');
-        const btnSettingsTrigger = document.getElementById('btn-settings-trigger');
-        const btnCloseSettings = document.getElementById('btn-close-settings');
+        // Drawer Settings inputs
         const geminiKeyInput = document.getElementById('gemini-key');
         const docIntelEndpointInput = document.getElementById('docintel-endpoint');
         const cuEndpointInput = document.getElementById('cu-endpoint');
 
-        // URL Converter inputs
+        // URL Converter elements
         const urlInput = document.getElementById('url-input');
         const btnConvertUrl = document.getElementById('btn-convert-url');
 
+        // Search options
         const searchInput = document.getElementById('search-input');
         const searchCounter = document.getElementById('search-counter');
         const searchPrevBtn = document.getElementById('search-prev');
@@ -1063,12 +1205,167 @@
         const syncScrollCheck = document.getElementById('sync-scroll-check');
 
         const dragBlocker = document.getElementById('drag-blocker');
+        const srcTabGroup = document.getElementById('src-tab-group');
+        const btnResetSrc = document.getElementById('btn-reset-src');
+        const historyListElement = document.getElementById('history-list');
 
         let rawMarkdownText = "";
         let originalRenderedHTML = "";
         let searchMatches = [];
         let currentSearchIndex = -1;
         let activeSrcTab = 'file'; // 'file' or 'url'
+        let currentActiveTab = 'rendered'; // 'rendered', 'edit', 'raw'
+        let activeHistoryId = null;
+
+        // Load & save API configurations locally
+        const configKeys = ['gemini_api_key', 'docintel_endpoint', 'cu_endpoint'];
+        const inputsMap = {
+            'gemini_api_key': geminiKeyInput,
+            'docintel_endpoint': docIntelEndpointInput,
+            'cu_endpoint': cuEndpointInput
+        };
+
+        configKeys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                inputsMap[key].value = localStorage.getItem(key);
+            }
+            inputsMap[key].addEventListener('change', e => {
+                localStorage.setItem(key, e.target.value.trim());
+            });
+        });
+
+        // Initialize Conversion History
+        let conversionHistory = [];
+        try {
+            const storedHistory = localStorage.getItem('markitdown_history');
+            if (storedHistory) conversionHistory = JSON.parse(storedHistory);
+        } catch(e) {
+            console.error("Lỗi đọc lịch sử:", e);
+        }
+        renderHistoryList();
+
+        function saveHistory(name, markdown, type = 'file') {
+            const newItem = {
+                id: Date.now().toString(),
+                name: name,
+                markdown: markdown,
+                type: type,
+                timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            };
+            conversionHistory.unshift(newItem);
+            if (conversionHistory.length > 30) conversionHistory.pop(); // Giới hạn 30 mục
+            localStorage.setItem('markitdown_history', JSON.stringify(conversionHistory));
+            renderHistoryList();
+            setActiveHistory(newItem.id);
+        }
+
+        function renderHistoryList() {
+            historyListElement.innerHTML = "";
+            if (conversionHistory.length === 0) {
+                historyListElement.innerHTML = `
+                    <div class="history-empty">
+                        <div style="font-size: 1.5rem; opacity: 0.5;">🗄️</div>
+                        <span>Chưa có tệp nào được chuyển đổi gần đây</span>
+                    </div>
+                `;
+                return;
+            }
+
+            conversionHistory.forEach(item => {
+                const isSelected = activeHistoryId === item.id;
+                const div = document.createElement('div');
+                div.className = `history-item ${isSelected ? 'active' : ''}`;
+                div.setAttribute('onclick', `loadHistoryItem('${item.id}')`);
+                div.innerHTML = `
+                    <div class="history-item-info">
+                        <span class="history-item-name" title="${item.name}">${item.name}</span>
+                        <span class="history-item-meta">
+                            <span>${item.type === 'url' ? '🌐 URL' : '📁 File'}</span>
+                            <span>${item.timestamp}</span>
+                        </span>
+                    </div>
+                    <button class="btn-history-delete" onclick="deleteHistoryItem(event, '${item.id}')" title="Xóa">✕</button>
+                `;
+                historyListElement.appendChild(div);
+            });
+        }
+
+        function loadHistoryItem(id) {
+            const item = conversionHistory.find(x => x.id === id);
+            if (!item) return;
+            setActiveHistory(id);
+
+            destPlaceholder.style.display = 'none';
+            rawMarkdownText = item.markdown;
+            originalRenderedHTML = marked.parse(rawMarkdownText);
+            
+            // Set text & content
+            renderedView.innerHTML = originalRenderedHTML;
+            editorTextarea.value = rawMarkdownText;
+            rawView.value = rawMarkdownText;
+            
+            switchTab(currentActiveTab);
+            
+            btnCopy.style.display = 'flex';
+            btnDownload.style.display = 'flex';
+            searchInput.disabled = false;
+            
+            // Reset & setup left preview
+            const existingPreview = document.getElementById('active-preview');
+            if (existingPreview) existingPreview.remove();
+            
+            srcPlaceholder.style.display = 'none';
+            urlPlaceholder.style.display = 'none';
+            srcTabGroup.style.display = 'none';
+            btnResetSrc.style.display = 'block';
+            activeDocTitle.innerText = `Lịch sử: ${item.name}`;
+
+            const fallback = document.createElement('div');
+            fallback.id = 'active-preview';
+            fallback.className = 'placeholder-box';
+            fallback.innerHTML = `
+                <div style="font-size: 3rem;">🗂️</div>
+                <div>
+                    <h3 style="margin-bottom: 0.5rem; color: #ffffff;">${item.name}</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary);">Bạn đang xem lại tài liệu lịch sử được lưu trữ offline.</p>
+                </div>
+            `;
+            srcPanel.appendChild(fallback);
+        }
+
+        function deleteHistoryItem(event, id) {
+            event.stopPropagation();
+            conversionHistory = conversionHistory.filter(x => x.id !== id);
+            localStorage.setItem('markitdown_history', JSON.stringify(conversionHistory));
+            if (activeHistoryId === id) {
+                activeHistoryId = null;
+                resetWorkspace();
+            } else {
+                renderHistoryList();
+            }
+        }
+
+        function clearHistory() {
+            if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chuyển đổi không?")) {
+                conversionHistory = [];
+                localStorage.setItem('markitdown_history', JSON.stringify([]));
+                activeHistoryId = null;
+                resetWorkspace();
+            }
+        }
+
+        function setActiveHistory(id) {
+            activeHistoryId = id;
+            const items = historyListElement.querySelectorAll('.history-item');
+            items.forEach((elem, idx) => {
+                const historyElem = conversionHistory[idx];
+                if (historyElem && historyElem.id === id) {
+                    elem.classList.add('active');
+                } else {
+                    elem.classList.remove('active');
+                }
+            });
+        }
 
         // Switch Left Panel Source Tab
         function switchSrcTab(type) {
@@ -1089,32 +1386,7 @@
             }
         }
 
-        // Toggle Settings Drawer
-        btnSettingsTrigger.addEventListener('click', () => {
-            settingsDrawer.classList.toggle('open');
-        });
-        btnCloseSettings.addEventListener('click', () => {
-            settingsDrawer.classList.remove('open');
-        });
-
-        // Load / Save API Configurations
-        const configKeys = ['gemini_api_key', 'docintel_endpoint', 'cu_endpoint'];
-        const inputsMap = {
-            'gemini_api_key': geminiKeyInput,
-            'docintel_endpoint': docIntelEndpointInput,
-            'cu_endpoint': cuEndpointInput
-        };
-
-        configKeys.forEach(key => {
-            if (localStorage.getItem(key)) {
-                inputsMap[key].value = localStorage.getItem(key);
-            }
-            inputsMap[key].addEventListener('change', e => {
-                localStorage.setItem(key, e.target.value.trim());
-            });
-        });
-
-        // Drag bar resizing logic
+        // Split drag resizer logic
         const leftPanel = document.getElementById('left-panel');
         const rightPanel = document.getElementById('right-panel');
         const resizer = document.getElementById('drag-bar');
@@ -1130,7 +1402,7 @@
         function initDrag(e) {
             isDragging = true;
             resizer.classList.add('dragging');
-            dragBlocker.style.display = 'block'; // Show blocking overlay
+            dragBlocker.style.display = 'block';
             
             document.addEventListener('mousemove', doDrag);
             document.addEventListener('mouseup', stopDrag);
@@ -1143,8 +1415,7 @@
             const leftWidth = e.clientX - workspaceRect.left;
             const leftWidthPercentage = (leftWidth / workspaceRect.width) * 100;
             
-            // Set bounds (min 20%, max 80%)
-            if (leftWidthPercentage > 20 && leftWidthPercentage < 80) {
+            if (leftWidthPercentage > 15 && leftWidthPercentage < 85) {
                 leftPanel.style.width = `${leftWidthPercentage}%`;
             }
         }
@@ -1152,13 +1423,13 @@
         function stopDrag() {
             isDragging = false;
             resizer.classList.remove('dragging');
-            dragBlocker.style.display = 'none'; // Hide blocking overlay
+            dragBlocker.style.display = 'none';
             
             document.removeEventListener('mousemove', doDrag);
             document.removeEventListener('mouseup', stopDrag);
         }
 
-        // Synced Scrolling Logic
+        // Synced scroll logic
         let isSyncingLeftScroll = false;
         let isSyncingRightScroll = false;
 
@@ -1192,7 +1463,7 @@
             }
         });
 
-        // Search & Highlight Logic
+        // Search & Highlight text
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
@@ -1210,12 +1481,9 @@
                 return;
             }
             
-            // Re-render to clear previous highlights
             renderedView.innerHTML = originalRenderedHTML;
-            
             const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
             
-            // Safe walker to avoid messing up HTML tags
             const walkTextNodes = (node) => {
                 if (node.nodeType === 3) {
                     const text = node.nodeValue;
@@ -1275,7 +1543,6 @@
             highlightActiveMatch();
         });
 
-        // Helper to construct request headers from config settings
         function buildHeaders() {
             const headers = {};
             const geminiKey = geminiKeyInput.value.trim();
@@ -1289,7 +1556,7 @@
             return headers;
         }
 
-        // Drag events for file uploads
+        // Drag-and-drop actions
         window.addEventListener('dragenter', e => {
             e.preventDefault();
             dragOverlay.style.display = 'flex';
@@ -1325,44 +1592,45 @@
             }
         });
 
-        // Reset Left Panel to its upload state
-        function resetLeftPanel() {
-            // Remove preview
+        // Reset workspace to upload/placeholder state
+        function resetWorkspace() {
             const existingPreview = document.getElementById('active-preview');
             if (existingPreview) existingPreview.remove();
 
-            // Reset header state
             srcTabGroup.style.display = 'flex';
-            srcTitle.style.display = 'none';
             btnResetSrc.style.display = 'none';
-            headerUploadBtnWrapper.style.visibility = 'visible';
+            activeDocTitle.innerText = "Chưa chọn tài liệu đối chiếu";
 
-            // Reset tab visibility
             switchSrcTab(activeSrcTab);
 
-            // Reset right panel markdown content
             rawMarkdownText = "";
             originalRenderedHTML = "";
             renderedView.innerHTML = "";
             renderedView.style.display = "none";
+            editView.style.display = "none";
+            editorTextarea.value = "";
             rawView.value = "";
             rawView.style.display = "none";
             destPlaceholder.style.display = "flex";
             btnCopy.style.display = "none";
+            btnDownload.style.display = "none";
             
-            // Reset search input
             searchInput.disabled = true;
             searchInput.value = "";
             searchCounter.style.display = 'none';
+            activeHistoryId = null;
+            renderHistoryList();
         }
 
         function uploadFile(file) {
-            loadingText.innerText = "Đang chuyển đổi tài liệu. Vui lòng chờ...";
+            loadingText.innerHTML = "Đang chuyển đổi tài liệu. Vui lòng chờ...";
             loading.style.display = 'flex';
             destPlaceholder.style.display = 'none';
             renderedView.style.display = 'none';
+            editView.style.display = 'none';
             rawView.style.display = 'none';
             btnCopy.style.display = 'none';
+            btnDownload.style.display = 'none';
             
             searchInput.disabled = true;
             searchInput.value = "";
@@ -1370,14 +1638,11 @@
             searchPrevBtn.disabled = true;
             searchNextBtn.disabled = true;
 
-            // Hide upload tabs and show the active document name
             srcTabGroup.style.display = 'none';
             srcPlaceholder.style.display = 'none';
             urlPlaceholder.style.display = 'none';
-            srcTitle.style.display = 'block';
-            srcTitle.innerText = `Nguồn: ${file.name}`;
+            activeDocTitle.innerText = `Nguồn: ${file.name}`;
             btnResetSrc.style.display = 'block';
-            headerUploadBtnWrapper.style.visibility = 'hidden';
             
             const existingPreview = document.getElementById('active-preview');
             if (existingPreview) existingPreview.remove();
@@ -1423,10 +1688,10 @@
                 fallback.id = 'active-preview';
                 fallback.className = 'placeholder-box';
                 fallback.innerHTML = `
-                    <div style="font-size: 4rem;">📁</div>
+                    <div style="font-size: 3.5rem;">📁</div>
                     <div>
-                        <h3 style="margin-bottom: 0.5rem; color: #ffffff;">${file.name}</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Định dạng file không hỗ trợ xem trước trực tiếp ngoại tuyến. <br>Đang tiến hành chuyển đổi sang Markdown bên phải...</p>
+                        <h3 style="margin-bottom: 0.35rem; color: #ffffff;">${file.name}</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary);">Định dạng file không hỗ trợ xem trước trực tiếp ngoại tuyến. <br>Đang tiến hành chuyển đổi sang Markdown bên phải...</p>
                     </div>
                 `;
                 srcPanel.appendChild(fallback);
@@ -1453,11 +1718,16 @@
                 rawMarkdownText = data.markdown;
                 originalRenderedHTML = marked.parse(rawMarkdownText);
                 renderedView.innerHTML = originalRenderedHTML;
+                editorTextarea.value = rawMarkdownText;
                 rawView.value = rawMarkdownText;
                 
-                switchTab('rendered');
+                switchTab(currentActiveTab);
                 btnCopy.style.display = 'flex';
+                btnDownload.style.display = 'flex';
                 searchInput.disabled = false;
+
+                // Save to offline history
+                saveHistory(file.name, rawMarkdownText, 'file');
             })
             .catch(err => {
                 loading.style.display = 'none';
@@ -1466,7 +1736,7 @@
             });
         }
 
-        // Convert URL (YouTube, Web URL etc)
+        // Convert link URLs
         btnConvertUrl.addEventListener('click', () => {
             const url = urlInput.value.trim();
             if (!url) {
@@ -1478,21 +1748,20 @@
             loading.style.display = 'flex';
             destPlaceholder.style.display = 'none';
             renderedView.style.display = 'none';
+            editView.style.display = 'none';
             rawView.style.display = 'none';
             btnCopy.style.display = 'none';
+            btnDownload.style.display = 'none';
 
             searchInput.disabled = true;
             searchInput.value = "";
             searchCounter.style.display = 'none';
 
-            // UI adjustments
             srcTabGroup.style.display = 'none';
             srcPlaceholder.style.display = 'none';
             urlPlaceholder.style.display = 'none';
-            srcTitle.style.display = 'block';
-            srcTitle.innerText = `URL: ${url}`;
+            activeDocTitle.innerText = `Nguồn: ${url}`;
             btnResetSrc.style.display = 'block';
-            headerUploadBtnWrapper.style.visibility = 'hidden';
 
             const existingPreview = document.getElementById('active-preview');
             if (existingPreview) existingPreview.remove();
@@ -1501,10 +1770,10 @@
             previewFrame.id = 'active-preview';
             previewFrame.className = 'placeholder-box';
             previewFrame.innerHTML = `
-                <div style="font-size: 4rem;">🌐</div>
+                <div style="font-size: 3.5rem;">🌐</div>
                 <div>
-                    <h3 style="margin-bottom: 0.5rem; color: #ffffff;">Đường dẫn web</h3>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px; overflow-wrap: break-word;">${url}</p>
+                    <h3 style="margin-bottom: 0.35rem; color: #ffffff;">Đường dẫn liên kết</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); max-width: 320px; overflow-wrap: break-word;">${url}</p>
                 </div>
             `;
             srcPanel.appendChild(previewFrame);
@@ -1530,11 +1799,16 @@
                 rawMarkdownText = data.markdown;
                 originalRenderedHTML = marked.parse(rawMarkdownText);
                 renderedView.innerHTML = originalRenderedHTML;
+                editorTextarea.value = rawMarkdownText;
                 rawView.value = rawMarkdownText;
 
-                switchTab('rendered');
+                switchTab(currentActiveTab);
                 btnCopy.style.display = 'flex';
+                btnDownload.style.display = 'flex';
                 searchInput.disabled = false;
+
+                // Save to offline history
+                saveHistory(url, rawMarkdownText, 'url');
             })
             .catch(err => {
                 loading.style.display = 'none';
@@ -1543,22 +1817,104 @@
             });
         });
 
-        // Tabs
+        // Tab Switching for Right Workspace Panel
         function switchTab(tabType) {
-            const tabs = document.querySelectorAll('.tab-btn');
+            currentActiveTab = tabType;
+            const tabs = document.querySelectorAll('#right-panel .tab-btn');
             tabs.forEach(tab => tab.classList.remove('active'));
 
+            document.getElementById(`tab-btn-${tabType}`).classList.add('active');
+
             if (tabType === 'rendered') {
-                document.getElementById('tab-btn-rendered').classList.add('active');
                 renderedView.style.display = 'block';
+                editView.style.display = 'none';
                 rawView.style.display = 'none';
                 searchInput.disabled = !rawMarkdownText;
-            } else {
-                document.getElementById('tab-btn-raw').classList.add('active');
+            } else if (tabType === 'edit') {
                 renderedView.style.display = 'none';
+                editView.style.display = 'flex';
+                rawView.style.display = 'none';
+                searchInput.disabled = true;
+            } else {
+                renderedView.style.display = 'none';
+                editView.style.display = 'none';
                 rawView.style.display = 'block';
                 searchInput.disabled = true;
             }
+        }
+
+        // Live markdown editor change event
+        function onEditorInputChange() {
+            rawMarkdownText = editorTextarea.value;
+            rawView.value = rawMarkdownText;
+            originalRenderedHTML = marked.parse(rawMarkdownText);
+            renderedView.innerHTML = originalRenderedHTML;
+
+            // Cập nhật lại lịch sử với nội dung mới được edit nếu có
+            if (activeHistoryId) {
+                const histItem = conversionHistory.find(x => x.id === activeHistoryId);
+                if (histItem) {
+                    histItem.markdown = rawMarkdownText;
+                    localStorage.setItem('markitdown_history', JSON.stringify(conversionHistory));
+                }
+            }
+        }
+
+        // Quick Formatting tools for Markdown Editor
+        function insertFormat(format) {
+            const textarea = editorTextarea;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end);
+            
+            let replacement = "";
+            let offsetCursor = 0;
+
+            switch(format) {
+                case 'bold':
+                    replacement = `**${selectedText || 'chữ đậm'}**`;
+                    offsetCursor = selectedText ? 0 : -2;
+                    break;
+                case 'italic':
+                    replacement = `*${selectedText || 'chữ nghiêng'}*`;
+                    offsetCursor = selectedText ? 0 : -1;
+                    break;
+                case 'h1':
+                    replacement = `\n# ${selectedText || 'Tiêu đề 1'}\n`;
+                    break;
+                case 'h2':
+                    replacement = `\n## ${selectedText || 'Tiêu đề 2'}\n`;
+                    break;
+                case 'code':
+                    replacement = selectedText.includes('\n') 
+                        ? `\n\`\`\`python\n${selectedText || '# code block'}\n\`\`\`\n`
+                        : `\`${selectedText || 'inline code'}\``;
+                    break;
+                case 'link':
+                    replacement = `[${selectedText || 'tên liên kết'}](https://example.com)`;
+                    break;
+                case 'table':
+                    replacement = `\n| Tiêu đề 1 | Tiêu đề 2 |\n|---|---|\n| Cột 1 | Cột 2 |\n`;
+                    break;
+                case 'list':
+                    replacement = `\n- ${selectedText || 'mục danh sách'}\n`;
+                    break;
+            }
+
+            textarea.value = text.substring(0, start) + replacement + text.substring(end);
+            textarea.focus();
+            
+            // Re-select text
+            if (selectedText) {
+                textarea.setSelectionRange(start, start + replacement.length);
+            } else {
+                const newCursor = start + replacement.length + offsetCursor;
+                textarea.setSelectionRange(newCursor, newCursor);
+            }
+            
+            // Sync values
+            onEditorInputChange();
         }
 
         // Copy Clipboard
@@ -1567,7 +1923,7 @@
                 const btn = document.getElementById('btn-copy');
                 const originalText = btn.innerHTML;
                 btn.innerHTML = `
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     <span style="color: var(--success-color); font-weight: 600;">Đã Copy</span>
                 `;
                 setTimeout(() => {
@@ -1576,7 +1932,32 @@
             });
         }
 
-        // Kiểm tra cập nhật ứng dụng thực tế từ GitHub Releases
+        // Download Markdown File
+        function downloadMarkdown() {
+            if (!rawMarkdownText) return;
+            
+            // Lấy tên tệp hiện tại làm tên lưu
+            let saveName = "document.md";
+            if (activeHistoryId) {
+                const histItem = conversionHistory.find(x => x.id === activeHistoryId);
+                if (histItem) {
+                    const cleanName = histItem.name.replace(/\.[^/.]+$/, ""); // Xóa đuôi cũ
+                    saveName = `${cleanName}.md`;
+                }
+            }
+
+            const blob = new Blob([rawMarkdownText], { type: 'text/markdown;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = saveName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Automatic and manual software updating
         function checkUpdates() {
             const btn = document.getElementById('btn-check-update');
             const origText = btn.innerHTML;
@@ -1608,7 +1989,6 @@
                 return;
             }
             
-            // Render giao diện thông báo cập nhật kèm changelog
             loadingText.innerHTML = `
                 <div style="font-size: 1.15rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem; text-align: center;">
                     🚀 Đang tự động nâng cấp ứng dụng lên phiên bản mới <span style="color: #6366f1;">v${latestVersion || ''}</span>
@@ -1641,13 +2021,12 @@
                 }
             })
             .catch(err => {
-                // Tắt app gây ngắt kết nối fetch, đây là trạng thái khởi chạy lại bình thường
                 const statusText = document.querySelector("#loading p div:first-child");
                 if (statusText) statusText.innerText = "Đang áp dụng bản cập nhật và khởi động lại...";
             });
         }
 
-        // Tự động kiểm tra cập nhật sau khi khởi chạy ứng dụng 3 giây
+        // Tự động kiểm tra cập nhật khi khởi chạy 3 giây
         setTimeout(() => {
             fetch('/api/check_update')
             .then(res => res.json())
