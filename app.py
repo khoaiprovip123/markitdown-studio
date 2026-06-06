@@ -81,6 +81,31 @@ else:
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+if hasattr(sys, '_MEIPASS'):
+    executable_dir = os.path.dirname(sys.executable)
+    CONFIG_FILE_PATH = os.path.join(executable_dir, 'config.json')
+else:
+    CONFIG_FILE_PATH = os.path.join(base_path, 'config.json')
+
+def load_settings_file():
+    import json
+    if os.path.exists(CONFIG_FILE_PATH):
+        try:
+            with open(CONFIG_FILE_PATH, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_settings_file(data):
+    import json
+    try:
+        with open(CONFIG_FILE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        return True
+    except Exception:
+        return False
+
 markitdown_client = MarkItDown()
 ocr_reader = None
 
@@ -95,6 +120,246 @@ def get_ocr_reader():
         except Exception as e:
             print(f"Khong the khoi tao EasyOCR: {e}")
     return ocr_reader
+
+import uuid
+import threading
+
+conversion_tasks = {}
+
+def transcribe_audio_free_local_with_progress(file_path, task_id):
+    import speech_recognition as sr
+    from pydub import AudioSegment
+    from pydub.effects import normalize
+    from pydub.silence import detect_nonsilent
+    import tempfile
+    
+    sound = AudioSegment.from_file(file_path)
+    
+    try:
+        sound = normalize(sound)
+    except Exception:
+        pass
+        
+    sound = sound.set_frame_rate(16000).set_channels(1)
+    
+    duration_ms = len(sound)
+    dbfs = sound.dBFS
+    silence_thresh = max(dbfs - 16, -45)
+    
+    ranges = []
+    try:
+        ranges = detect_nonsilent(sound, min_silence_len=900, silence_thresh=silence_thresh)
+    except Exception as e:
+        print(f"Lỗi khi chạy detect_nonsilent: {e}")
+        
+    chunks_to_process = []
+    if ranges:
+        current_start = None
+        current_end = None
+        max_chunk_duration = 35000  # 35 seconds max
+        
+        for start, end in ranges:
+            if current_start is None:
+                current_start = start
+                current_end = end
+            else:
+                if end - current_start > max_chunk_duration:
+                    pad_start = max(0, current_start - 300)
+                    pad_end = min(duration_ms, current_end + 300)
+                    chunks_to_process.append((pad_start, sound[pad_start:pad_end]))
+                    current_start = start
+                    current_end = end
+                else:
+                    current_end = end
+        if current_start is not None:
+            pad_start = max(0, current_start - 300)
+            pad_end = min(duration_ms, current_end + 300)
+            chunks_to_process.append((pad_start, sound[pad_start:pad_end]))
+    else:
+        # Fallback to fixed interval if no ranges detected
+        chunk_length_ms = 30000
+        overlap_ms = 3000
+        start = 0
+        while start < duration_ms:
+            end = min(start + chunk_length_ms, duration_ms)
+            chunks_to_process.append((start, sound[start:end]))
+            start += chunk_length_ms - overlap_ms
+        
+    recognizer = sr.Recognizer()
+    recognizer.dynamic_energy_threshold = True
+    
+    full_transcript = []
+    total_chunks = len(chunks_to_process)
+    
+    conversion_tasks[task_id].update({
+        'total_chunks': total_chunks,
+        'current_chunk': 0,
+        'progress': 0,
+        'message': f'ĐANG GỠ BĂNG (Tổng số: {total_chunks} phân đoạn)...'
+    })
+    
+    has_adjusted = False
+    
+    for idx, (start_ms, chunk) in enumerate(chunks_to_process):
+        current_num = idx + 1
+        progress = int((current_num / total_chunks) * 100)
+        conversion_tasks[task_id].update({
+            'current_chunk': current_num,
+            'progress': progress,
+            'message': f'Đang gỡ băng... (Phân đoạn {current_num}/{total_chunks})'
+        })
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+        try:
+            chunk.export(tmp_path, format="wav")
+            with sr.AudioFile(tmp_path) as source:
+                if not has_adjusted:
+                    recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                    has_adjusted = True
+                audio_data = recognizer.record(source)
+                try:
+                    text = recognizer.recognize_google(audio_data, language="vi-VN")
+                    if text.strip():
+                        start_sec = start_ms // 1000
+                        minutes = start_sec // 60
+                        seconds = start_sec % 60
+                        timestamp = f"[{minutes:02d}:{seconds:02d}]"
+                        full_transcript.append(f"{timestamp} {text}")
+                except sr.UnknownValueError:
+                    pass
+                except sr.RequestError as e:
+                    raise Exception(f"Lỗi kết nối dịch vụ Google Speech: {e}")
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+                
+    if not full_transcript:
+        return "Không nhận diện được giọng nói trong tệp âm thanh này bằng phương thức offline miễn phí."
+        
+    return "\n\n".join(full_transcript)
+
+def ocr_pdf_via_easyocr_with_progress(file_path, task_id):
+    import pypdfium2 as pdfium
+    import numpy as np
+    
+    reader = get_ocr_reader()
+    if reader is None:
+        raise Exception("Không thể khởi tạo OCR Reader (EasyOCR).")
+        
+    pdf = pdfium.PdfDocument(file_path)
+    total_pages = len(pdf)
+    ocr_pages = []
+    
+    conversion_tasks[task_id].update({
+        'total_chunks': total_pages,
+        'current_chunk': 0,
+        'progress': 0,
+        'message': f'Phát hiện PDF quét. Bắt đầu OCR (Tổng số: {total_pages} trang)...'
+    })
+    
+    for i, page in enumerate(pdf):
+        current_num = i + 1
+        progress = int((current_num / total_pages) * 100)
+        conversion_tasks[task_id].update({
+            'current_chunk': current_num,
+            'progress': progress,
+            'message': f'Đang nhận diện chữ... (Trang {current_num}/{total_pages})'
+        })
+        
+        pil_img = page.render(scale=2).to_pil()
+        img_np = np.array(pil_img)
+        results = reader.readtext(img_np, paragraph=True)
+        page_text = sort_ocr_results_smart(results)
+        
+        if page_text.strip():
+            ocr_pages.append(f"## Trang {i+1}\n\n{page_text}")
+        else:
+            ocr_pages.append(f"## Trang {i+1}\n\n*(Trang trống hoặc không nhận diện được chữ)*")
+            
+    return "\n\n".join(ocr_pages)
+
+def async_convert_worker(task_id, file_path, ext, gemini_key, docintel_endpoint, cu_endpoint, filename):
+    try:
+        client_kwargs = {}
+        if docintel_endpoint:
+            client_kwargs['docintel_endpoint'] = docintel_endpoint
+        if cu_endpoint:
+            client_kwargs['cu_endpoint'] = cu_endpoint
+        local_client = MarkItDown(**client_kwargs) if client_kwargs else markitdown_client
+
+        # 1. AUDIO FILES
+        if ext in ['mp3', 'wav', 'm4a', 'mp4']:
+            if gemini_key:
+                conversion_tasks[task_id].update({
+                    'message': 'Đang tải tệp lên Gemini AI...',
+                    'progress': 30
+                })
+                markdown_content = transcribe_audio_via_gemini(file_path, gemini_key, ext)
+                markdown_content = f"# Kết Quả Trích Xuất Lời Thoại (Gemini AI)\n\n" + markdown_content
+                conversion_tasks[task_id]['progress'] = 100
+            else:
+                markdown_content = transcribe_audio_free_local_with_progress(file_path, task_id)
+        
+        # 2. IMAGE FILES (OCR)
+        elif ext in ['png', 'jpg', 'jpeg']:
+            conversion_tasks[task_id].update({
+                'message': 'Đang khởi động EasyOCR...',
+                'progress': 10
+            })
+            reader = get_ocr_reader()
+            if reader is not None:
+                conversion_tasks[task_id].update({
+                    'message': 'Đang tiến hành trích xuất OCR tiếng Việt...',
+                    'progress': 50
+                })
+                results = reader.readtext(file_path, paragraph=True)
+                markdown_content = sort_ocr_results_smart(results)
+                if not markdown_content.strip():
+                    markdown_content = "# Kết Quả Trích Xuất Chữ (OCR)\n\nKhông tìm thấy chữ nào trong hình ảnh này."
+                else:
+                    markdown_content = "# Kết Quả Trích Xuất Chữ (OCR)\n\n" + markdown_content
+                conversion_tasks[task_id]['progress'] = 100
+            else:
+                markdown_content = local_client.convert(file_path, keep_data_uris=True).text_content
+                if not markdown_content.strip():
+                    markdown_content = "# Kết Quả\n\nKhông trích xuất được thông tin từ hình ảnh."
+                conversion_tasks[task_id]['progress'] = 100
+                
+        # 3. OTHER DOCUMENTS (PDF, Word, Excel, etc.)
+        else:
+            conversion_tasks[task_id].update({
+                'message': 'Đang đọc và phân tích tài liệu...',
+                'progress': 20
+            })
+            result = local_client.convert(file_path, keep_data_uris=True)
+            markdown_content = result.text_content
+            
+            # Check for scanned PDF
+            if ext == 'pdf':
+                cleaned_text = "".join(c for c in markdown_content if c.isalnum())
+                if len(cleaned_text) < 150:
+                    try:
+                        ocr_content = ocr_pdf_via_easyocr_with_progress(file_path, task_id)
+                        markdown_content = f"# Kết Quả Trích Xuất PDF (OCR Tự Động)\n\n> **Lưu ý**: Tài liệu này được xác định là ảnh quét (Scanned PDF). Hệ thống đã tự động chạy EasyOCR tiếng Việt để trích xuất nội dung.\n\n" + ocr_content
+                    except Exception as ocr_err:
+                        markdown_content += f"\n\n> **Lưu ý**: Tài liệu này có vẻ là PDF dạng quét (Scanned PDF) nhưng lỗi khi chạy OCR: {str(ocr_err)}"
+            
+            conversion_tasks[task_id]['progress'] = 100
+
+        conversion_tasks[task_id].update({
+            'status': 'completed',
+            'progress': 100,
+            'markdown': markdown_content,
+            'preview_url': f'/uploads/{filename}'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        conversion_tasks[task_id].update({
+            'status': 'failed',
+            'error': str(e)
+        })
 
 def sort_ocr_results_smart(results):
     if not results:
@@ -200,13 +465,12 @@ def transcribe_audio_free_local(file_path):
     import speech_recognition as sr
     from pydub import AudioSegment
     from pydub.effects import normalize
+    from pydub.silence import detect_nonsilent
     import tempfile
     
     sound = AudioSegment.from_file(file_path)
     
     # 1. TĂNG CƯỜNG ÂM THANH (AUDIO ENHANCEMENT):
-    # Chuẩn hóa âm lượng (normalization) đưa biên độ âm thanh về mức tối đa mà không bị vỡ/méo tiếng.
-    # Giúp các đoạn nói nhỏ, thầm thì được khuếch đại rõ ràng lên.
     try:
         sound = normalize(sound)
         print("Da tu dong tang cuong va chuan hoa am luong (Normalize) cho file am thanh.")
@@ -215,43 +479,74 @@ def transcribe_audio_free_local(file_path):
         
     sound = sound.set_frame_rate(16000).set_channels(1)
     
-    # Chia nhỏ mỗi đoạn 30 giây để tránh lỗi timeout của Google API và nhận diện tốt hơn
-    chunk_length_ms = 30000
-    overlap_ms = 1000  # 1 giây chồng chéo giữa các đoạn để không bị mất chữ ở điểm cắt
-    
-    chunks = []
     duration_ms = len(sound)
-    start = 0
-    while start < duration_ms:
-        end = min(start + chunk_length_ms, duration_ms)
-        chunks.append(sound[start:end])
-        start += chunk_length_ms - overlap_ms
+    dbfs = sound.dBFS
+    silence_thresh = max(dbfs - 16, -45)
+    
+    ranges = []
+    try:
+        ranges = detect_nonsilent(sound, min_silence_len=900, silence_thresh=silence_thresh)
+    except Exception as e:
+        print(f"Lỗi khi chạy detect_nonsilent: {e}")
+        
+    chunks_to_process = []
+    if ranges:
+        current_start = None
+        current_end = None
+        max_chunk_duration = 35000  # 35 seconds max
+        
+        for start, end in ranges:
+            if current_start is None:
+                current_start = start
+                current_end = end
+            else:
+                if end - current_start > max_chunk_duration:
+                    pad_start = max(0, current_start - 300)
+                    pad_end = min(duration_ms, current_end + 300)
+                    chunks_to_process.append((pad_start, sound[pad_start:pad_end]))
+                    current_start = start
+                    current_end = end
+                else:
+                    current_end = end
+        if current_start is not None:
+            pad_start = max(0, current_start - 300)
+            pad_end = min(duration_ms, current_end + 300)
+            chunks_to_process.append((pad_start, sound[pad_start:pad_end]))
+    else:
+        # Fallback to fixed interval if no ranges detected
+        chunk_length_ms = 30000
+        overlap_ms = 3000
+        start = 0
+        while start < duration_ms:
+            end = min(start + chunk_length_ms, duration_ms)
+            chunks_to_process.append((start, sound[start:end]))
+            start += chunk_length_ms - overlap_ms
         
     recognizer = sr.Recognizer()
-    # Cấu hình lọc tạp âm nhạy hơn
     recognizer.dynamic_energy_threshold = True
     
     full_transcript = []
+    has_adjusted = False
     
-    for idx, chunk in enumerate(chunks):
+    for idx, (start_ms, chunk) in enumerate(chunks_to_process):
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
             tmp_path = tmp_file.name
         try:
             chunk.export(tmp_path, format="wav")
             with sr.AudioFile(tmp_path) as source:
-                # Tự động điều chỉnh ngưỡng ồn cho từng phân đoạn nhỏ
-                recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                if not has_adjusted:
+                    recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                    has_adjusted = True
                 audio_data = recognizer.record(source)
                 try:
                     text = recognizer.recognize_google(audio_data, language="vi-VN")
                     if text.strip():
-                        start_sec = (idx * (chunk_length_ms - overlap_ms)) // 1000
+                        start_sec = start_ms // 1000
                         minutes = start_sec // 60
                         seconds = start_sec % 60
                         timestamp = f"[{minutes:02d}:{seconds:02d}]"
                         full_transcript.append(f"{timestamp} {text}")
                 except sr.UnknownValueError:
-                    # Ghi chú phân đoạn không nghe rõ thay vì bỏ trống hoàn toàn
                     pass
                 except sr.RequestError as e:
                     raise Exception(f"Lỗi kết nối dịch vụ Google Speech: {e}")
@@ -358,6 +653,16 @@ def transcribe_audio_via_gemini(file_path, api_key, ext):
         except Exception as e:
             print(f"Lỗi xóa file tạm: {e}")
 
+@app.route('/api/config', methods=['GET', 'POST'])
+def handle_config():
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        if save_settings_file(data):
+            return jsonify({'success': True})
+        return jsonify({'error': 'Không thể ghi tệp cấu hình.'}), 500
+    else:
+        return jsonify(load_settings_file())
+
 @app.route('/')
 def index():
     return render_template('index.html', version=VERSION)
@@ -378,76 +683,41 @@ def convert_file():
     docintel_endpoint = request.headers.get('X-DocIntel-Endpoint')
     cu_endpoint = request.headers.get('X-CU-Endpoint')
     
-    try:
-        # Cấu hình client động dựa trên Endpoint Azure nếu có
-        client_kwargs = {}
-        if docintel_endpoint:
-            client_kwargs['docintel_endpoint'] = docintel_endpoint
-        if cu_endpoint:
-            client_kwargs['cu_endpoint'] = cu_endpoint
-        local_client = MarkItDown(**client_kwargs) if client_kwargs else markitdown_client
+    server_config = load_settings_file()
+    if not gemini_key:
+        gemini_key = server_config.get('gemini_api_key')
+    if not docintel_endpoint:
+        docintel_endpoint = server_config.get('docintel_endpoint')
+    if not cu_endpoint:
+        cu_endpoint = server_config.get('cu_endpoint')
+        
+    task_id = str(uuid.uuid4())
+    conversion_tasks[task_id] = {
+        'status': 'processing',
+        'progress': 0,
+        'message': 'Đang chuẩn bị xử lý tệp...',
+        'filename': file.filename,
+        'total_chunks': 0,
+        'current_chunk': 0
+    }
+    
+    thread = threading.Thread(target=async_convert_worker, args=(
+        task_id, file_path, ext, gemini_key, docintel_endpoint, cu_endpoint, file.filename
+    ))
+    thread.daemon = True
+    thread.start()
+    
+    return jsonify({
+        'task_id': task_id,
+        'filename': file.filename
+    })
 
-        # Neu la file am thanh, uu tien Gemini API neu co Key, nguoc lai dung transcriber local mien phi
-        if ext in ['mp3', 'wav', 'm4a', 'mp4']:
-            if gemini_key:
-                print(f"Tien hanh transcribe {file.filename} qua Gemini API...")
-                markdown_content = transcribe_audio_via_gemini(file_path, gemini_key, ext)
-                markdown_content = f"# Kết Quả Trích Xuất Lời Thoại (Gemini AI)\n\n" + markdown_content
-            else:
-                print(f"Tien hanh transcribe {file.filename} mien phi local...")
-                try:
-                    ocr_content = transcribe_audio_free_local(file_path)
-                    markdown_content = f"# Kết Quả Trích Xuất Lời Thoại (Miễn Phí Local)\n\n> **Lưu ý**: Hệ thống đang sử dụng Google Speech API miễn phí (không cần API Key) bằng cách chia nhỏ file âm thanh.\n\n" + ocr_content
-                except Exception as local_err:
-                    print(f"Lỗi khi transcribe local: {local_err}")
-                    result = local_client.convert(file_path, keep_data_uris=True)
-                    markdown_content = result.text_content
-        
-        elif ext in ['png', 'jpg', 'jpeg']:
-            reader = get_ocr_reader()
-            if reader is not None:
-                print(f"Dang chay OCR cho file: {file.filename}")
-                results = reader.readtext(file_path, paragraph=True)
-                markdown_content = sort_ocr_results_smart(results)
-                
-                if not markdown_content.strip():
-                    markdown_content = "# Kết Quả Trích Xuất Chữ (OCR)\n\nKhông tìm thấy chữ nào trong hình ảnh này."
-                else:
-                    markdown_content = "# Kết Quả Trích Xuất Chữ (OCR)\n\n" + markdown_content
-            else:
-                result = local_client.convert(file_path, keep_data_uris=True)
-                markdown_content = result.text_content
-                if not markdown_content.strip():
-                    markdown_content = "# Kết Quả\n\nKhông trích xuất được thông tin từ hình ảnh."
-        else:
-            print(f"Dang convert file {file.filename} bang MarkItDown...")
-            result = local_client.convert(file_path, keep_data_uris=True)
-            markdown_content = result.text_content
-            
-            # Kiểm tra xem có phải PDF dạng ảnh quét (scanned PDF) không
-            if ext == 'pdf':
-                cleaned_text = "".join(c for c in markdown_content if c.isalnum())
-                if len(cleaned_text) < 150:
-                    print("Nhận diện PDF dạng scan (quá ít chữ). Tiến hành chạy OCR...")
-                    try:
-                        ocr_content = ocr_pdf_via_easyocr(file_path)
-                        markdown_content = f"# Kết Quả Trích Xuất PDF (OCR Tự Động)\n\n> **Lưu ý**: Tài liệu này được xác định là ảnh quét (Scanned PDF). Hệ thống đã tự động chạy EasyOCR tiếng Việt để trích xuất nội dung.\n\n" + ocr_content
-                    except Exception as ocr_err:
-                        print(f"Lỗi khi OCR PDF: {ocr_err}")
-                        markdown_content += f"\n\n> **Lưu ý**: Tài liệu này có vẻ là PDF dạng quét (Scanned PDF) nhưng lỗi khi chạy OCR: {str(ocr_err)}"
-            
-            # Neu convert ra bi loi hoac rong va la file am thanh ma khong co key
-            if ext in ['mp3', 'wav', 'm4a', 'mp4'] and "[No speech detected]" in markdown_content:
-                markdown_content += "\n\n> **Lưu ý**: Đối với file âm thanh dài hoặc dung lượng lớn, hãy nhập **Gemini API Key** ở góc phải màn hình để sử dụng AI transcribe tiếng Việt chính xác."
-        
-        return jsonify({
-            'markdown': markdown_content,
-            'filename': file.filename,
-            'preview_url': f'/uploads/{file.filename}'
-        })
-    except Exception as e:
-        print(f"Loi khi convert {file.filename}: {e}")
-        return jsonify({'error': f'Lỗi khi convert: {str(e)}'}), 500
+@app.route('/task_status/<task_id>', methods=['GET'])
+def task_status(task_id):
+    task = conversion_tasks.get(task_id)
+    if not task:
+        return jsonify({'error': 'Không tìm thấy tác vụ.'}), 404
+    return jsonify(task)
 
 @app.route('/convert_url', methods=['POST'])
 def convert_url():

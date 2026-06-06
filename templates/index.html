@@ -57,9 +57,69 @@
             position: relative;
         }
 
-        /* Sidebar Left (Config + History) */
-        .sidebar {
-            width: 320px;
+        /* Activity Bar Left Navigation icons */
+        .activity-bar {
+            width: 60px;
+            background: rgba(8, 11, 20, 0.98);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 0;
+            flex-shrink: 0;
+            z-index: 32;
+        }
+
+        .activity-top, .activity-bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            width: 100%;
+            align-items: center;
+        }
+
+        .activity-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            width: 42px;
+            height: 42px;
+            border-radius: 0.65rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .activity-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .activity-btn.active {
+            color: #ffffff;
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25);
+        }
+
+        .activity-btn.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 25%;
+            height: 50%;
+            width: 3px;
+            background: var(--accent-gradient);
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Sidebar Content Panel */
+        .sidebar-panel {
+            width: 280px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -67,6 +127,49 @@
             flex-shrink: 0;
             z-index: 30;
             backdrop-filter: blur(20px);
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar-panel.collapsed {
+            width: 0px;
+            border-right: none;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            min-height: 57px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-tab-content {
+            padding: 1.25rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sidebar-section-inner {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
         }
 
         .sidebar-brand {
@@ -873,56 +976,125 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Loading */
-        .loading-overlay {
+        /* Progress Modal and layout */
+        .progress-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(8, 11, 17, 0.9);
+            background: rgba(15, 23, 42, 0.75);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 50;
-            gap: 1.25rem;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            padding: 2rem;
         }
 
-        .spinner-container {
-            position: relative;
+        .progress-box {
+            background: #f8fafc;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            border-radius: 2.25rem;
+            padding: 3rem 2.5rem;
+            width: 460px;
+            max-width: 100%;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            text-align: center;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+            color: #1e293b;
         }
 
-        .spinner {
-            width: 3rem;
-            height: 3rem;
-            border: 3px solid rgba(99, 102, 241, 0.1);
-            border-top: 3px solid #6366f1;
-            border-radius: 50%;
-            animation: spin 1s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+        /* Circular progress styling */
+        .progress-circle-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1.5rem;
         }
 
-        .spinner-glow {
+        .progress-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-circle-bg {
+            fill: none;
+            stroke: rgba(0, 0, 0, 0.04);
+            stroke-width: 6;
+        }
+
+        .progress-circle-fg {
+            fill: none;
+            stroke: url(#progress-grad);
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s ease;
+            transform-origin: 50% 50%;
+        }
+
+        .progress-circle-text {
             position: absolute;
-            width: 3rem;
-            height: 3rem;
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-            animation: pulse 2s infinite;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0284c7;
+            letter-spacing: 0.05em;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Progress Bar Linear styling */
+        .progress-bar-container {
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 99px;
+            height: 8px;
+            overflow: hidden;
+            margin: 1.25rem 0 0.5rem 0;
+            border: none;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.1); opacity: 0.7; }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 99px;
+            box-shadow: none;
+        }
+
+        .progress-label-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .progress-percentage {
+            color: #0284c7;
+            font-weight: 800;
+        }
+
+        .neural-network-text {
+            font-size: 0.65rem;
+            font-family: 'Fira Code', monospace;
+            color: #94a3b8;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 1.5rem;
         }
 
         /* Search highlights */
@@ -1134,33 +1306,78 @@
     <div class="drag-target" id="drag-overlay">Kéo thả tài liệu vào đây để đối chiếu</div>
 
     <div class="app-container">
-        <!-- Sidebar (Left Panel) -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon">M</div>
-                <div class="brand-name">MarkItDown Studio</div>
-            </div>
-
-            <!-- Conversion History Section -->
-            <div class="sidebar-section" style="flex-grow: 1; border-bottom: none; overflow: hidden; display: flex; flex-direction: column;">
-                <div class="section-title">
-                    Lịch sử đối chiếu
-                    <button class="btn-clear" onclick="clearHistory()">Xóa hết</button>
-                </div>
-                <div class="history-list" id="history-list">
-                    <!-- History elements loaded dynamically via JS -->
-                </div>
-            </div>
-
-            <!-- Sidebar Footer -->
-            <div class="sidebar-footer">
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-secondary);">
-                    <span>Phiên bản: <strong style="color: var(--accent-color);">v{{ version }}</strong></span>
-                    <span>Offline Secured</span>
-                </div>
-                <button class="btn-action btn-accent" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.5rem; gap: 0.35rem;" onclick="toggleSettingsModal(true)">
-                    ⚙️ Cài đặt & Hệ thống
+        <!-- Activity Bar (Icons Navigation) -->
+        <div class="activity-bar">
+            <div class="activity-top">
+                <button class="activity-btn active" id="act-btn-history" onclick="switchSidebarTab('history')" title="Lịch sử đối chiếu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </button>
+                <button class="activity-btn" id="act-btn-settings" onclick="switchSidebarTab('settings')" title="Cấu hình APIs & Cloud">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <button class="activity-btn" id="act-btn-config" onclick="switchSidebarTab('config')" title="Tệp cấu hình JSON">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </button>
+            </div>
+            <div class="activity-bottom">
+                <button class="activity-btn" id="act-btn-toggle" onclick="toggleSidebarPanel()" title="Thu gọn / Mở rộng bảng">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebar-toggle-icon"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar Panel Content -->
+        <aside class="sidebar-panel" id="sidebar-panel">
+            <div class="sidebar-header">
+                <div class="sidebar-header-title" id="sidebar-panel-title">Lịch sử đối chiếu</div>
+            </div>
+
+            <!-- Content: History -->
+            <div class="sidebar-tab-content" id="sidebar-content-history">
+                <div class="sidebar-section-inner">
+                    <div class="section-title" style="margin-bottom: 0.75rem;">
+                        <span>Lịch sử phiên chạy</span>
+                        <button class="btn-clear" onclick="clearHistory()">Xóa hết</button>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content: Settings -->
+            <div class="sidebar-tab-content" id="sidebar-content-settings" style="display: none;">
+                <div class="sidebar-section-inner">
+                    <div class="section-title" style="margin-bottom: 0.75rem;">Cài đặt APIs & Cloud</div>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label class="form-label">Gemini API Key</label>
+                            <input type="password" id="sidebar-gemini-key" class="form-input" placeholder="Nhập Key AI..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Azure DocIntel Endpoint</label>
+                            <input type="text" id="sidebar-docintel-endpoint" class="form-input" placeholder="https://..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Azure CU Endpoint</label>
+                            <input type="text" id="sidebar-cu-endpoint" class="form-input" placeholder="https://..." />
+                        </div>
+                        <button class="btn-action btn-accent" style="width: 100%; justify-content: center; margin-top: 0.5rem; font-weight: 600;" onclick="saveConfigFromSidebarForm()">
+                            💾 Lưu cấu hình
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content: Config File JSON -->
+            <div class="sidebar-tab-content" id="sidebar-content-config" style="display: none; height: calc(100% - 58px);">
+                <div class="sidebar-section-inner" style="height: 100%; display: flex; flex-direction: column;">
+                    <div class="section-title" style="margin-bottom: 0.75rem;">Tệp Cài Đặt (JSON)</div>
+                    <textarea id="config-raw-textarea" class="markdown-editor-textarea" style="flex-grow: 1; font-size: 0.75rem; font-family: 'Fira Code', monospace; margin-bottom: 0.75rem; background: rgba(0,0,0,0.3); padding: 0.75rem;" placeholder="{ ... }"></textarea>
+                    <button class="btn-action btn-accent" style="width: 100%; justify-content: center; font-weight: 600;" onclick="saveRawConfigText()">
+                        💾 Lưu tệp setting
+                    </button>
+                </div>
             </div>
         </aside>
 
@@ -1283,13 +1500,35 @@
                         </div>
                     </div>
                     <div class="panel-content" id="dest-panel">
-                        <!-- Transcribing/Processing loading overlay -->
-                        <div class="loading-overlay" id="loading">
-                            <div class="spinner-container">
-                                <div class="spinner"></div>
-                                <div class="spinner-glow"></div>
+                        <!-- Transcribing/Processing progress overlay -->
+                        <div class="progress-overlay" id="loading">
+                            <div class="progress-box">
+                                <div class="progress-circle-wrapper">
+                                    <svg class="progress-svg">
+                                        <defs>
+                                            <linearGradient id="progress-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#6366f1" />
+                                                <stop offset="50%" stop-color="#a855f7" />
+                                                <stop offset="100%" stop-color="#06b6d4" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="progress-circle-bg" cx="60" cy="60" r="50" />
+                                        <circle class="progress-circle-fg" id="progress-circle" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" />
+                                    </svg>
+                                    <div class="progress-circle-text" id="progress-circle-inner-text">AI</div>
+                                </div>
+                                <h3 id="progress-title" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em;">Đang phân tích</h3>
+                                <p id="progress-subtitle" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; line-height: 1.4; word-break: break-all; margin-bottom: 0.5rem; font-weight: 500;">filename.mp3</p>
+                                
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                                </div>
+                                <div class="progress-label-row">
+                                    <span id="progress-status-text">Đang khởi chạy...</span>
+                                    <span class="progress-percentage" id="progress-percentage-text">0%</span>
+                                </div>
+                                <div class="neural-network-text">PROCESSING VIA NEURAL NETWORK</div>
                             </div>
-                            <p id="loading-text" style="font-weight: 500; font-size: 0.9rem; color: #a5b4fc; margin-top: 0.5rem; text-align: center;">Đang chuyển đổi tài liệu...</p>
                         </div>
                         
                         <div class="placeholder-box" id="dest-placeholder">
@@ -1380,7 +1619,7 @@
         const dragOverlay = document.getElementById('drag-overlay');
         const fileSelector = document.getElementById('file-selector');
         const loading = document.getElementById('loading');
-        const loadingText = document.getElementById('loading-text');
+        const loadingText = document.getElementById('progress-status-text');
         
         const srcPlaceholder = document.getElementById('src-placeholder');
         const urlPlaceholder = document.getElementById('url-placeholder');
@@ -1754,9 +1993,13 @@
 
         function buildHeaders() {
             const headers = {};
-            const geminiKey = geminiKeyInput.value.trim();
-            const docIntel = docIntelEndpointInput.value.trim();
-            const cuEndpoint = cuEndpointInput.value.trim();
+            const sidebarGemini = document.getElementById('sidebar-gemini-key');
+            const sidebarDocIntel = document.getElementById('sidebar-docintel-endpoint');
+            const sidebarCU = document.getElementById('sidebar-cu-endpoint');
+
+            const geminiKey = (sidebarGemini ? sidebarGemini.value : (typeof geminiKeyInput !== 'undefined' && geminiKeyInput ? geminiKeyInput.value : "")).trim();
+            const docIntel = (sidebarDocIntel ? sidebarDocIntel.value : (typeof docIntelEndpointInput !== 'undefined' && docIntelEndpointInput ? docIntelEndpointInput.value : "")).trim();
+            const cuEndpoint = (sidebarCU ? sidebarCU.value : (typeof cuEndpointInput !== 'undefined' && cuEndpointInput ? cuEndpointInput.value : "")).trim();
 
             if (geminiKey) headers['X-Gemini-Key'] = geminiKey;
             if (docIntel) headers['X-DocIntel-Endpoint'] = docIntel;
@@ -1855,7 +2098,31 @@
         }
 
         function uploadFile(file) {
-            loadingText.innerHTML = "Đang chuyển đổi tài liệu. Vui lòng chờ...";
+            const progressCircle = document.getElementById('progress-circle');
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressPercentageText = document.getElementById('progress-percentage-text');
+            const progressStatusText = document.getElementById('progress-status-text');
+            const progressTitle = document.getElementById('progress-title');
+            const progressSubtitle = document.getElementById('progress-subtitle');
+            
+            // Set initial state
+            progressCircle.style.strokeDashoffset = "314.16";
+            progressBarFill.style.width = "0%";
+            progressPercentageText.innerText = "0%";
+            progressStatusText.innerText = "Đang chuẩn bị...";
+            
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (['mp3', 'wav', 'm4a', 'mp4'].includes(ext)) {
+                progressTitle.innerText = "Đang gỡ băng (Audio)";
+            } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+                progressTitle.innerText = "Đang nhận diện chữ (OCR)";
+            } else if (ext === 'pdf') {
+                progressTitle.innerText = "Đang xử lý PDF";
+            } else {
+                progressTitle.innerText = "Đang phân tích";
+            }
+            progressSubtitle.innerText = file.name;
+
             loading.style.display = 'flex';
             destPlaceholder.style.display = 'none';
             renderedView.style.display = 'none';
@@ -1880,7 +2147,6 @@
             if (existingPreview) existingPreview.remove();
 
             const fileUrl = URL.createObjectURL(file);
-            const ext = file.name.split('.').pop().toLowerCase();
 
             if (ext === 'pdf') {
                 const iframe = document.createElement('iframe');
@@ -1914,7 +2180,6 @@
                 audio.style.width = '80%';
                 audio.style.marginTop = '20%';
                 srcPanel.appendChild(audio);
-                loadingText.innerText = "Đang xử lý/Trích xuất lời thoại âm thanh bằng AI (quá trình này có thể mất vài phút đến hàng chục phút đối với tệp âm thanh lớn hoặc dài trên 1 tiếng)...";
             } else {
                 const fallback = document.createElement('div');
                 fallback.id = 'active-preview';
@@ -1939,27 +2204,75 @@
             })
             .then(res => res.json())
             .then(data => {
-                loading.style.display = 'none';
                 if (data.error) {
+                    loading.style.display = 'none';
                     alert(data.error);
                     destPlaceholder.style.display = 'flex';
                     destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>${data.error}</p>`;
                     return;
                 }
 
-                rawMarkdownText = data.markdown;
-                originalRenderedHTML = marked.parse(rawMarkdownText);
-                renderedView.innerHTML = originalRenderedHTML;
-                editorTextarea.value = rawMarkdownText;
-                rawView.value = rawMarkdownText;
-                
-                switchTab(currentActiveTab);
-                btnCopy.style.display = 'flex';
-                btnDownload.style.display = 'flex';
-                searchInput.disabled = false;
+                const taskId = data.task_id;
+                const pollInterval = setInterval(() => {
+                    fetch(`/task_status/${taskId}`)
+                    .then(res => res.json())
+                    .then(taskData => {
+                        if (taskData.error) {
+                            clearInterval(pollInterval);
+                            loading.style.display = 'none';
+                            alert(taskData.error);
+                            destPlaceholder.style.display = 'flex';
+                            destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>${taskData.error}</p>`;
+                            return;
+                        }
 
-                // Save to offline history
-                saveHistory(file.name, rawMarkdownText, 'file');
+                        const progress = taskData.progress || 0;
+                        const offset = 314.16 - (314.16 * progress / 100);
+                        progressCircle.style.strokeDashoffset = offset;
+                        progressBarFill.style.width = `${progress}%`;
+                        progressPercentageText.innerText = `${progress}%`;
+                        progressStatusText.innerText = taskData.message || "Đang xử lý...";
+                        
+                        if (taskData.total_chunks && taskData.total_chunks > 1) {
+                            const unitText = ext === 'pdf' ? 'trang' : 'phân đoạn';
+                            progressSubtitle.innerText = `${file.name} (${unitText} ${taskData.current_chunk}/${taskData.total_chunks})`;
+                        } else {
+                            progressSubtitle.innerText = file.name;
+                        }
+
+                        if (taskData.status === 'completed') {
+                            clearInterval(pollInterval);
+                            loading.style.display = 'none';
+
+                            rawMarkdownText = taskData.markdown;
+                            originalRenderedHTML = marked.parse(rawMarkdownText);
+                            renderedView.innerHTML = originalRenderedHTML;
+                            editorTextarea.value = rawMarkdownText;
+                            rawView.value = rawMarkdownText;
+                            
+                            switchTab(currentActiveTab);
+                            btnCopy.style.display = 'flex';
+                            btnDownload.style.display = 'flex';
+                            searchInput.disabled = false;
+
+                            // Save to offline history
+                            saveHistory(file.name, rawMarkdownText, 'file');
+                        } else if (taskData.status === 'failed') {
+                            clearInterval(pollInterval);
+                            loading.style.display = 'none';
+                            const errMsg = taskData.error || "Lỗi không xác định.";
+                            alert(errMsg);
+                            destPlaceholder.style.display = 'flex';
+                            destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>${errMsg}</p>`;
+                        }
+                    })
+                    .catch(err => {
+                        clearInterval(pollInterval);
+                        loading.style.display = 'none';
+                        destPlaceholder.style.display = 'flex';
+                        destPlaceholder.innerHTML = `<div style="color: var(--error-color); font-size: 2rem;">❌</div><p>Lỗi kết nối kiểm tra tiến trình: ${err}</p>`;
+                    });
+                }, 500);
             })
             .catch(err => {
                 loading.style.display = 'none';
@@ -2258,7 +2571,139 @@
                 const statusText = document.querySelector("#loading p div:first-child");
                 if (statusText) statusText.innerText = "Đang khởi động trình cài đặt...";
             });
+            // Collapsible Sidebar Tab navigation logic
+        let activeSidebarTab = 'history';
+        const sidebarPanel = document.getElementById('sidebar-panel');
+        const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
+        const sidebarPanelTitle = document.getElementById('sidebar-panel-title');
+
+        const sidebarInputs = {
+            gemini_api_key: document.getElementById('sidebar-gemini-key'),
+            docintel_endpoint: document.getElementById('sidebar-docintel-endpoint'),
+            cu_endpoint: document.getElementById('sidebar-cu-endpoint')
+        };
+        const configRawTextarea = document.getElementById('config-raw-textarea');
+
+        function switchSidebarTab(tabName) {
+            const isCollapsed = sidebarPanel.classList.contains('collapsed');
+            
+            // If already active and side panel is open, collapse it
+            if (activeSidebarTab === tabName && !isCollapsed) {
+                toggleSidebarPanel();
+                return;
+            }
+
+            // Set buttons active state
+            document.querySelectorAll('.activity-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`act-btn-${tabName}`).classList.add('active');
+
+            // Hide all tab contents, show target
+            document.querySelectorAll('.sidebar-tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(`sidebar-content-${tabName}`).style.display = 'flex';
+
+            // Set Title
+            let titleText = "Lịch sử";
+            if (tabName === 'settings') {
+                titleText = "Cài đặt APIs";
+                loadConfigFromServer();
+            } else if (tabName === 'config') {
+                titleText = "Tệp setting";
+                loadConfigFromServer();
+            }
+            sidebarPanelTitle.innerText = titleText;
+
+            // Ensure panel is expanded
+            if (isCollapsed) {
+                sidebarPanel.classList.remove('collapsed');
+                sidebarToggleIcon.innerHTML = '<polyline points="15 18 9 12 15 6"></polyline>';
+            }
+
+            activeSidebarTab = tabName;
         }
+
+        function toggleSidebarPanel() {
+            const isCollapsed = sidebarPanel.classList.contains('collapsed');
+            if (isCollapsed) {
+                sidebarPanel.classList.remove('collapsed');
+                sidebarToggleIcon.innerHTML = '<polyline points="15 18 9 12 15 6"></polyline>';
+            } else {
+                sidebarPanel.classList.add('collapsed');
+                sidebarToggleIcon.innerHTML = '<polyline points="9 18 15 12 9 6"></polyline>';
+            }
+        }
+
+        function loadConfigFromServer() {
+            fetch('/api/config')
+            .then(res => res.json())
+            .then(config => {
+                // Populate inputs
+                sidebarInputs.gemini_api_key.value = config.gemini_api_key || '';
+                sidebarInputs.docintel_endpoint.value = config.docintel_endpoint || '';
+                sidebarInputs.cu_endpoint.value = config.cu_endpoint || '';
+
+                // Populate textarea
+                configRawTextarea.value = JSON.stringify(config, null, 4);
+
+                // Sync with local inputs if legacy code requires it
+                if (typeof geminiKeyInput !== 'undefined' && geminiKeyInput) {
+                    geminiKeyInput.value = config.gemini_api_key || '';
+                    docIntelEndpointInput.value = config.docintel_endpoint || '';
+                    cuEndpointInput.value = config.cu_endpoint || '';
+                }
+            })
+            .catch(err => console.error("Lỗi lấy cấu hình từ server:", err));
+        }
+
+        function saveConfigFromSidebarForm() {
+            const config = {
+                gemini_api_key: sidebarInputs.gemini_api_key.value.trim(),
+                docintel_endpoint: sidebarInputs.docintel_endpoint.value.trim(),
+                cu_endpoint: sidebarInputs.cu_endpoint.value.trim()
+            };
+
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Đã lưu cấu hình thành công!");
+                    loadConfigFromServer();
+                } else {
+                    alert("Lỗi lưu cấu hình: " + data.error);
+                }
+            })
+            .catch(err => alert("Lỗi kết nối server: " + err));
+        }
+
+        function saveRawConfigText() {
+            try {
+                const config = JSON.parse(configRawTextarea.value);
+                
+                fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Đã lưu tệp setting JSON thành công!");
+                        loadConfigFromServer();
+                    } else {
+                        alert("Lỗi lưu cấu hình: " + data.error);
+                    }
+                })
+                .catch(err => alert("Lỗi kết nối server: " + err));
+            } catch (jsonErr) {
+                alert("Định dạng JSON không hợp lệ! Vui lòng kiểm tra lại: " + jsonErr.message);
+            }
+        }
+
+        // Tự động tải cấu hình ban đầu từ máy chủ
+        loadConfigFromServer();
 
         // Tự động kiểm tra cập nhật khi khởi chạy 3 giây
         setTimeout(() => {
