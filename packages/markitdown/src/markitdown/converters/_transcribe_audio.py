@@ -51,7 +51,9 @@ def transcribe_audio(file_stream: BinaryIO, *, audio_format: str = "wav") -> str
         except Exception:
             try:
                 # Fallback to English
-                transcript = recognizer.recognize_google(audio, language="en-US").strip()
+                transcript = recognizer.recognize_google(
+                    audio, language="en-US"
+                ).strip()
             except Exception:
                 transcript = ""
         return "[No speech detected]" if transcript == "" else transcript

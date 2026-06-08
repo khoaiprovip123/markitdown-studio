@@ -43,7 +43,7 @@ class PptxConverter(DocumentConverter):
     def _sort_shapes_smart(self, shapes, container_width):
         if not shapes:
             return []
-        
+
         valid_shapes = []
         invalid_shapes = []
         for s in shapes:
@@ -54,16 +54,16 @@ class PptxConverter(DocumentConverter):
                     invalid_shapes.append(s)
             except Exception:
                 invalid_shapes.append(s)
-                
+
         if not valid_shapes:
             return list(shapes)
-            
+
         if not container_width:
             try:
                 container_width = max(s.left + s.width for s in valid_shapes)
             except Exception:
                 container_width = 9144000
-                
+
         spanning_shapes = []
         column_shapes = []
         for s in valid_shapes:
@@ -74,50 +74,42 @@ class PptxConverter(DocumentConverter):
                     column_shapes.append(s)
             except Exception:
                 column_shapes.append(s)
-                
+
         groups = []
         for s in column_shapes:
             s_left = s.left
             s_right = s.left + s.width
-            
+
             merged = False
             for g in groups:
                 g_left = min(x.left for x in g)
                 g_right = max(x.left + x.width for x in g)
-                
+
                 if max(s_left, g_left) < min(s_right, g_right):
                     g.append(s)
                     merged = True
                     break
-                    
+
             if not merged:
                 groups.append([s])
-                
+
         for g in groups:
             g.sort(key=lambda x: x.top)
-            
+
         all_groups = []
         for s in spanning_shapes:
-            all_groups.append({
-                'type': 'spanning',
-                'top': s.top,
-                'shapes': [s]
-            })
-            
+            all_groups.append({"type": "spanning", "top": s.top, "shapes": [s]})
+
         for g in groups:
             min_top = min(x.top for x in g)
-            all_groups.append({
-                'type': 'column',
-                'top': min_top,
-                'shapes': g
-            })
-            
-        all_groups.sort(key=lambda x: x['top'])
-        
+            all_groups.append({"type": "column", "top": min_top, "shapes": g})
+
+        all_groups.sort(key=lambda x: x["top"])
+
         final_shapes = []
         for g in all_groups:
-            final_shapes.extend(g['shapes'])
-            
+            final_shapes.extend(g["shapes"])
+
         final_shapes.extend(invalid_shapes)
         return final_shapes
 
