@@ -33,6 +33,15 @@ jobs:
       run: |
         pip install -e packages/markitdown
 
+    - name: Update Version with Build Number
+      shell: powershell
+      run: |
+        $run_number = "${{ github.run_number }}"
+        $content = Get-Content app.py
+        $new_content = $content -replace 'VERSION\s*=\s*"([^"]+)"', "VERSION = `"`$1.$run_number`""
+        $new_content | Set-Content app.py
+        Write-Host "Updated app.py version to: " ($new_content | Select-String -Pattern 'VERSION\s*=\s*"([^"]+)"').Matches.Groups[1].Value
+
     - name: Run PyInstaller Build
       run: |
         pyinstaller MarkItDownStudio.spec
@@ -52,8 +61,8 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ steps.get_version.outputs.VERSION }}.${{ github.run_number }}
-        name: MarkItDown Studio v${{ steps.get_version.outputs.VERSION }} (Build #${{ github.run_number }})
+        tag_name: v${{ steps.get_version.outputs.VERSION }}
+        name: "MarkItDown Studio v${{ steps.get_version.outputs.VERSION }} (Build #${{ github.run_number }})"
         files: |
           dist/MarkItDownStudioSetup.exe
         draft: false
